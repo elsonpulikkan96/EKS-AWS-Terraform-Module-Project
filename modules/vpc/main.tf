@@ -5,10 +5,10 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
   enable_dns_support   = true
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name        = "vpc-${var.env}-${terraform.workspace}"
     environment = "${var.env}-${terraform.workspace}"
-  }
+  })
 }
 
 data "aws_availability_zones" "available" {
@@ -24,12 +24,12 @@ resource "aws_subnet" "public_subnet" {
   map_public_ip_on_launch = true
   availability_zone       = data.aws_availability_zones.available.names[count.index]
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name                                        = "public-${var.env}-${count.index + 1}"
     Env                                         = var.env
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     "kubernetes.io/role/elb"                    = "1" # For internet facing ALB
-  }
+  })
 
   depends_on = [aws_vpc.main]
 }
@@ -40,12 +40,12 @@ resource "aws_subnet" "private_subnet" {
   cidr_block              = var.private_subnet[count.index]
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = false
-  tags = {
+  tags = merge(var.common_tags, {
     Name                                        = "private-${var.env}-${count.index + 1}"
     Env                                         = var.env
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     "kubernetes.io/role/internal-elb"           = "1" # For internal facing ALB
-  }
+  })
 
   depends_on = [aws_vpc.main]
 }
@@ -55,11 +55,11 @@ resource "aws_subnet" "private_subnet" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name                                        = "igw-${var.env}-${terraform.workspace}"
     env                                         = var.env
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-  }
+  })
 
   depends_on = [aws_vpc.main]
 }
@@ -69,9 +69,9 @@ resource "aws_internet_gateway" "igw" {
 resource "aws_eip" "nat_eip" {
   domain = "vpc"
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "nat_eip-${var.env}-${terraform.workspace}"
-  }
+  })
 
   depends_on = [aws_vpc.main]
 
@@ -81,9 +81,9 @@ resource "aws_nat_gateway" "nat_gateway" {
   allocation_id = aws_eip.nat_eip.id
   subnet_id     = aws_subnet.public_subnet[0].id
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "nat_gw-${var.env}-${terraform.workspace}"
-  }
+  })
 
   depends_on = [aws_vpc.main, aws_eip.nat_eip]
 }
@@ -99,10 +99,10 @@ resource "aws_route_table" "public_rt" {
     gateway_id = aws_internet_gateway.igw.id
   }
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "public_rt-${var.env}-${terraform.workspace}"
     env  = var.env
-  }
+  })
 
   depends_on = [aws_vpc.main]
 }
@@ -127,10 +127,10 @@ resource "aws_route_table" "private_rt" {
     nat_gateway_id = aws_nat_gateway.nat_gateway.id
   }
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "private_rt-${var.env}-${terraform.workspace}"
     env  = var.env
-  }
+  })
 
   depends_on = [aws_vpc.main]
 }

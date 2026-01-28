@@ -18,9 +18,9 @@ resource "aws_security_group" "eks-cluster-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "eks-cluster-sg-${terraform.workspace}"
-  }
+  })
 }
 
 resource "aws_security_group" "bastion-sg" {
@@ -42,7 +42,7 @@ resource "aws_security_group" "bastion-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "bastion-sg-${terraform.workspace}"
-  }
+  })
 }

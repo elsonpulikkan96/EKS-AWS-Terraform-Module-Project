@@ -18,10 +18,10 @@ resource "aws_eks_cluster" "eks" {
     bootstrap_cluster_creator_admin_permissions = true
   }
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = var.cluster_name
     Env  = var.env
-  }
+  })
 }
 
 # OIDC Provider
@@ -77,13 +77,13 @@ resource "aws_eks_node_group" "ondemand-node" {
   update_config {
     max_unavailable = 1
   }
-  tags = {
+  tags = merge(var.common_tags, {
     "Name" = "${var.cluster_name}-ondemand-nodes"
-  }
-  tags_all = {
+  })
+  tags_all = merge(var.common_tags, {
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     "Name"                                      = "${var.cluster_name}-ondemand-nodes"
-  }
+  })
 
   depends_on = [aws_eks_cluster.eks]
 }
@@ -108,13 +108,13 @@ resource "aws_eks_node_group" "spot-node" {
   update_config {
     max_unavailable = 1
   }
-  tags = {
+  tags = merge(var.common_tags, {
     "Name" = "${var.cluster_name}-spot-nodes"
-  }
-  tags_all = {
+  })
+  tags_all = merge(var.common_tags, {
     "kubernetes.io/cluster/${var.cluster_name}" = "owned" # The resource is created and managed specifically for this cluster. If the cluster is deleted, these resources should be cleaned up.
     "Name"                                      = "${var.cluster_name}-ondemand-nodes"
-  }
+  })
 
   # "shared": The resource can be used by multiple clusters (less common for node groups, more for subnets/VPCs).
 

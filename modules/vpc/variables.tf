@@ -6,6 +6,10 @@ variable "vpc_cidr_block" {
   type = string
 }
 
+variable "common_tags" {
+  type = map(string)
+}
+
 variable "public_subnet" {
   type = list(string)
 }

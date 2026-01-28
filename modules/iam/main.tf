@@ -21,6 +21,8 @@ resource "aws_iam_role" "eks-cluster-role" {
       Action = "sts:AssumeRole"
     }]
   })
+
+  tags = var.common_tags
 }
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
@@ -43,6 +45,8 @@ resource "aws_iam_role" "eks-nodegroup-role" {
       }
     }]
   })
+
+  tags = var.common_tags
 }
 
 resource "aws_iam_role_policy_attachment" "eks-AmazonWorkerNodePolicy" {
@@ -100,6 +104,7 @@ data "aws_iam_policy_document" "eks_oidc_assume_role_policy" {
 resource "aws_iam_role" "eks_oidc" {
   assume_role_policy = data.aws_iam_policy_document.eks_oidc_assume_role_policy.json
   name               = "eks-oidc"
+  tags               = var.common_tags
 }
 
 resource "aws_iam_policy" "eks-oidc-policy" {
@@ -117,6 +122,8 @@ resource "aws_iam_policy" "eks-oidc-policy" {
     }]
     Version = "2012-10-17"
   })
+
+  tags = var.common_tags
 }
 
 
@@ -138,6 +145,8 @@ resource "aws_iam_role" "bastion_role" {
       }
     ]
   })
+
+  tags = var.common_tags
 }
 
 

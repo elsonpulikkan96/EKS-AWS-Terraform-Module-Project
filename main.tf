@@ -1,5 +1,9 @@
 locals {
   env = var.env
+  
+  common_tags = {
+    terraform = "true"
+  }
 }
 
 module "vpc" {
@@ -10,13 +14,15 @@ module "vpc" {
   public_subnet  = var.public_subnet
   private_subnet = var.private_subnet
   cluster_name   = "${local.env}-${var.cluster_name}"
+  common_tags    = local.common_tags
 }
 
 module "sg" {
   source = "./modules/sg"
 
-  env    = var.env
-  vpc_id = module.vpc.vpc_id
+  env         = var.env
+  vpc_id      = module.vpc.vpc_id
+  common_tags = local.common_tags
 }
 
 module "iam" {
@@ -30,6 +36,7 @@ module "iam" {
   vpc_id                        = module.vpc.vpc_id
   oidc_provider_url             = module.eks.oidc_provider_url
   oidc_provider_arn             = module.eks.oidc_provider_arn
+  common_tags                   = local.common_tags
 
   depends_on = [module.vpc]
 }
@@ -60,6 +67,7 @@ module "eks" {
   min_capacity_spot          = var.min_capacity_spot
   max_capacity_spot          = var.max_capacity_spot
   addons                     = var.addons
+  common_tags                = local.common_tags
 
   depends_on = [module.vpc]
 }
@@ -72,7 +80,7 @@ module "bastion" {
   subnet_id                 = module.vpc.public_subnets[0] # Use public subnet for bastion
   security_groups           = [module.sg.bastion_sg_id]
   key_name                  = var.bastion_key_name
-  tags                      = var.bastion_tags
+  tags                      = merge(local.common_tags, var.bastion_tags)
   user_data                 = file("bastion_script.sh")
   iam_instance_profile_name = module.iam.bastion_iam_instance_profile_name
 

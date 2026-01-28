@@ -6,6 +6,10 @@ variable "cluster_name" {
   type = string
 }
 
+variable "common_tags" {
+  type = map(string)
+}
+
 variable "is_eks_cluster_enabled" {
   type = bool
 }

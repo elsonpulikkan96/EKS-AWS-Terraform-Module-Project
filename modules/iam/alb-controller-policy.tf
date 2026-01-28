@@ -28,6 +28,7 @@ resource "aws_iam_role" "alb_controller_role" {
   count              = var.is_alb_controller_enabled ? 1 : 0
   name               = "${local.cluster_name}-alb-controller-role-${random_integer.random_suffix.result}"
   assume_role_policy = data.aws_iam_policy_document.alb_controller_trust_policy.json
+  tags               = var.common_tags
 }
 
 resource "aws_iam_policy" "alb_controller_policy" {
@@ -285,4 +286,6 @@ resource "aws_iam_policy" "alb_controller_policy" {
       }
     ]
   })
+
+  tags = var.common_tags
 }

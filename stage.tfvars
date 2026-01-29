@@ -28,24 +28,24 @@ max_capacity_spot     = "15"
 
 addons = [
   {
-    name    = "vpc-cni",
-    version = "v1.21.1-eksbuild.3"
+    name = "vpc-cni"
+    # Version omitted - AWS will auto-select compatible version for EKS 1.35
   },
   {
-    name    = "coredns"
-    version = "v1.13.1-eksbuild.1"
+    name = "coredns"
+    # Version omitted - AWS will auto-select compatible version for EKS 1.35
   },
   {
-    name    = "kube-proxy"
-    version = "v1.35.0-eksbuild.2"
+    name = "kube-proxy"
+    # Version omitted - AWS will auto-select compatible version for EKS 1.35
   },
   {
-    name    = "aws-efs-csi-driver"
-    version = "v2.3.0-eksbuild.1"
+    name = "aws-efs-csi-driver"
+    # Version omitted - AWS will auto-select compatible version for EKS 1.35
   },
   {
-    name    = "aws-ebs-csi-driver"
-    version = "v1.55.0-eksbuild.1"
+    name = "aws-ebs-csi-driver"
+    # Version omitted - AWS will auto-select compatible version for EKS 1.35
   }
 
 ]

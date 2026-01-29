@@ -45,7 +45,21 @@ resource "aws_eks_addon" "eks-addons" {
   for_each      = { for idx, addon in var.addons : idx => addon }
   cluster_name  = aws_eks_cluster.eks[0].name
   addon_name    = each.value.name
-  addon_version = each.value.version
+  addon_version = lookup(each.value, "version", null) # Use null to auto-select compatible version
+
+  # EBS CSI driver requires service account role
+  service_account_role_arn = each.value.name == "aws-ebs-csi-driver" ? var.eks_node_role_arn : null
+
+  # Resolve conflicts by overwriting
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+
+  # Increase timeout for slow addons
+  timeouts {
+    create = "30m"
+    update = "30m"
+    delete = "30m"
+  }
 
   depends_on = [
     aws_eks_node_group.ondemand-node,

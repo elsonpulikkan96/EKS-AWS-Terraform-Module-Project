@@ -40,8 +40,9 @@ variable "max_capacity_spot" {}
 variable "addons" {
   type = list(object({
     name    = string
-    version = string
+    version = optional(string) # Make version optional
   }))
+  description = "List of EKS addons to install. Version is optional - if not specified, AWS will use the default compatible version."
 }
 
 # Bastion

@@ -29,8 +29,9 @@ variable "endpoint_public_access" {
 variable "addons" {
   type = list(object({
     name    = string
-    version = string
+    version = optional(string) # Make version optional
   }))
+  description = "List of EKS addons to install. Version is optional - if not specified, AWS will use the default compatible version."
 }
 
 variable "ondemand_instance_types" {

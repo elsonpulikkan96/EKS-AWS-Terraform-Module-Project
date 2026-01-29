@@ -117,12 +117,61 @@ aws configure
 aws sts get-caller-identity
 ```
 
-## 6. Terraform Apply
+## 6. Terraform Workspace Management
+
+This project uses Terraform workspaces to manage multiple environments (dev, stage, prod).
+
+### List available workspaces
 ```bash
-tf apply -var-file=dev.tfvars -auto-approve
+terraform workspace list
 ```
 
-## 7. Install EKS Addons version check
+### Switch between workspaces
+```bash
+# Switch to dev workspace
+terraform workspace select dev
+
+# Switch to stage workspace
+terraform workspace select stage
+
+# Switch to prod workspace
+terraform workspace select prod
+
+# Switch to default workspace
+terraform workspace select default
+```
+
+### Create new workspace (if needed)
+```bash
+terraform workspace new dev
+terraform workspace new stage
+terraform workspace new prod
+```
+
+## 7. Terraform Apply
+
+### For Dev Environment
+```bash
+terraform workspace select dev
+terraform plan -var-file="dev.tfvars"
+terraform apply -var-file="dev.tfvars" -auto-approve
+```
+
+### For Stage Environment
+```bash
+terraform workspace select stage
+terraform plan -var-file="stage.tfvars"
+terraform apply -var-file="stage.tfvars" -auto-approve
+```
+
+### For Prod Environment
+```bash
+terraform workspace select prod
+terraform plan -var-file="prod.tfvars"
+terraform apply -var-file="prod.tfvars" -auto-approve
+```
+
+## 8. Install EKS Addons version check
 ```bash
 helm repo add eks https://aws.github.io/eks-charts
 helm repo update eks
@@ -130,7 +179,7 @@ helm search repo eks/aws-load-balancer-controller --versions
 helm list -A
 ```
 
-## 8. Install EKS Addons argo-cd version check
+## 9. Install EKS Addons argo-cd version check
 ```bash
 helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
@@ -138,7 +187,7 @@ helm search repo argo/argo-cd --versions
 helm list -A
 ```
 
-## 9. Install EKS Addons prometheus version check
+## 10. Install EKS Addons prometheus version check
 ```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update prometheus-community
@@ -146,51 +195,63 @@ helm search repo prometheus-community/kube-prometheus-stack --versions
 helm list -A
 ```
 
-## 10. update the kubeconfig
+## 11. update the kubeconfig
 ```bash
 aws eks update-kubeconfig --name testing-spectrio-test-eks-cluster --region us-east-1
 ```
 
-## 11. get the argocd server url
+## 12. get the argocd server url
 ```bash
 kubectl get svc argocd-server -n argocd -o json | jq --raw-output '.status.loadBalancer.ingress[0].hostname'
 ```
 
-## 12. get the argocd admin password
+## 13. get the argocd admin password
 ```bash
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 
-## 13. get the prometheus admin password
+## 14. get the prometheus admin password
 ```bash
 kubectl get secret --namespace prometheus prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 ```
 
-## 14. get the prometheus grafana image
+## 15. get the prometheus grafana image
 ```bash
 helm list -n prometheus
 kubectl get pods -n prometheus -l app.kubernetes.io/name=grafana -o jsonpath='{.items[*].spec.containers[*].image}'
 ```
 
-## 15. reset the prometheus grafana admin password
+## 16. reset the prometheus grafana admin password
 ```bash 
 kubectl exec --namespace prometheus -it $(kubectl get pods --namespace prometheus -l app.kubernetes.io/name=grafana -o jsonpath="{.items[0].metadata.name}") -- grafana-cli admin reset-admin-password Abcd@1234
 ```
 
-## 16. Delete the Deployments
+## 17. Delete the Deployments
 ```bash
 kubectl delete -f .
 ```
 
-## 17. Destory the infrastructure
+## 18. Destroy the infrastructure
+
+### For Dev Environment
 ```bash
-terraform plan -var-file="dev.tfvars"
-terraform apply -var-file="dev.tfvars" -auto-approve
+terraform workspace select dev
 terraform destroy -var-file="dev.tfvars" -auto-approve
+```
 
-eksctl delete cluster --name testing-spectrio-test-eks-cluster --region us-east-1
-
-
+### For Stage Environment
+```bash
+terraform workspace select stage
 terraform destroy -var-file="stage.tfvars" -auto-approve
+```
+
+### For Prod Environment
+```bash
+terraform workspace select prod
 terraform destroy -var-file="prod.tfvars" -auto-approve
+```
+
+### Alternative: Delete EKS cluster using eksctl
+```bash
+eksctl delete cluster --name testing-spectrio-test-eks-cluster --region us-east-1
 ```

@@ -112,10 +112,31 @@ terraform destroy -var-file="prod.tfvars" -auto-approve
 
 
 ## 5. EKS Cluster Setup
+
+### Configure AWS Credentials
 ```bash
 aws configure
 aws sts get-caller-identity
 ```
+
+### Setup Remote State Backend (First Time Only)
+
+Before running Terraform, set up the remote state backend:
+
+```bash
+# Create S3 bucket and DynamoDB table for state management
+./setup-backend.sh
+
+# Initialize Terraform with backend
+terraform init -migrate-state
+```
+
+For detailed backend configuration and troubleshooting, see [BACKEND_SETUP.md](BACKEND_SETUP.md)
+
+**Note**: The backend uses a single S3 bucket with workspace-based state isolation:
+- Dev: `s3://spectrio-eks-terraform-state/env:/dev/eks-cluster/terraform.tfstate`
+- Stage: `s3://spectrio-eks-terraform-state/env:/stage/eks-cluster/terraform.tfstate`
+- Prod: `s3://spectrio-eks-terraform-state/env:/prod/eks-cluster/terraform.tfstate`
 
 ## 6. Terraform Workspace Management
 

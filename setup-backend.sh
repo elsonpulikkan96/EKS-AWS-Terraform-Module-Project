@@ -67,7 +67,7 @@ echo "✓ Public access blocked"
 
 # Add bucket policy for secure access
 echo "Adding bucket policy..."
-cat > /tmp/bucket-policy.json <<EOF
+cat > /tmp/bucket-policy.json <<'EOF'
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -77,8 +77,8 @@ cat > /tmp/bucket-policy.json <<EOF
             "Principal": "*",
             "Action": "s3:*",
             "Resource": [
-                "arn:aws:s3:::${BUCKET_NAME}",
-                "arn:aws:s3:::${BUCKET_NAME}/*"
+                "arn:aws:s3:::spectrio-eks-terraform-state",
+                "arn:aws:s3:::spectrio-eks-terraform-state/*"
             ],
             "Condition": {
                 "Bool": {
@@ -99,11 +99,14 @@ echo "✓ Bucket policy applied"
 
 # Add lifecycle policy for old versions
 echo "Adding lifecycle policy for state file versions..."
-cat > /tmp/lifecycle-policy.json <<EOF
+cat > /tmp/lifecycle-policy.json <<'EOF'
 {
     "Rules": [
         {
-            "Id": "DeleteOldVersions",
+            "ID": "DeleteOldVersions",
+            "Filter": {
+                "Prefix": ""
+            },
             "Status": "Enabled",
             "NoncurrentVersionExpiration": {
                 "NoncurrentDays": 90

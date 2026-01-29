@@ -148,7 +148,7 @@ helm list -A
 
 ## 10. update the kubeconfig
 ```bash
-aws eks update-kubeconfig --name testing-my-cluster --region ap-south-1
+aws eks update-kubeconfig --name testing-spectrio-test-eks-cluster --region us-east-1
 ```
 
 ## 11. get the argocd server url
@@ -188,7 +188,7 @@ terraform plan -var-file="dev.tfvars"
 terraform apply -var-file="dev.tfvars" -auto-approve
 terraform destroy -var-file="dev.tfvars" -auto-approve
 
-eksctl delete cluster --name testing-my-cluster --region ap-south-1
+eksctl delete cluster --name testing-spectrio-test-eks-cluster --region us-east-1
 
 
 terraform destroy -var-file="stage.tfvars" -auto-approve

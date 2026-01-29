@@ -1,5 +1,5 @@
 env            = "testing"
-region         = "ap-south-1"
+region         = "us-east-1"
 vpc_cidr_block = "10.0.0.0/16"
 
 public_subnet  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
@@ -53,7 +53,7 @@ addons = [
 
 
 #BASTION
-bastion_image_id      = "ami-02b8269d5e85954ef" # change this to your own ami id ubuntu machine
+bastion_image_id      = "ami-0b6c6ebed2801a5cb" # Ubuntu 24.04 LTS for us-east-1
 bastion_instance_type = "t2.micro"
 bastion_tags          = { Name = "bastion-dev" }
 bastion_key_name      = "new-keypair" # create your own key pair

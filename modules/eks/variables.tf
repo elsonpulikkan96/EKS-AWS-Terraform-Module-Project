@@ -10,6 +10,11 @@ variable "common_tags" {
   type = map(string)
 }
 
+variable "node_key_name" {
+  type        = string
+  description = "SSH key pair name for EKS worker nodes"
+}
+
 variable "is_eks_cluster_enabled" {
   type = bool
 }

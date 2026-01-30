@@ -72,6 +72,12 @@ resource "aws_iam_role_policy_attachment" "eks-AmazonEBSCSIDriverPolicy" {
   role       = aws_iam_role.eks-nodegroup-role[count.index].name
 }
 
+resource "aws_iam_role_policy_attachment" "eks-AmazonSSMManagedInstanceCore" {
+  count      = var.is_eks_nodegroup_role_enabled ? 1 : 0
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.eks-nodegroup-role[count.index].name
+}
+
 # ALB Controller Attach Policy
 
 resource "aws_iam_role_policy_attachment" "alb-controller-policy-attach" {

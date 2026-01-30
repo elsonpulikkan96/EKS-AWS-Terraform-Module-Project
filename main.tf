@@ -67,6 +67,7 @@ module "eks" {
   min_capacity_spot          = var.min_capacity_spot
   max_capacity_spot          = var.max_capacity_spot
   addons                     = var.addons
+  node_key_name              = var.bastion_key_name
   common_tags                = local.common_tags
 
   depends_on = [module.vpc]

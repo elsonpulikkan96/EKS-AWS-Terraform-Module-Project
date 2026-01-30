@@ -66,6 +66,29 @@ resource "aws_eks_addon" "eks-addons" {
   ]
 }
 
+# Launch Template for On-Demand Nodes
+resource "aws_launch_template" "ondemand" {
+  name_prefix = "${var.cluster_name}-ondemand-"
+  key_name    = var.node_key_name
+  
+  user_data = base64encode(file("${path.module}/ssm-userdata.sh"))
+  
+  tag_specifications {
+    resource_type = "instance"
+    tags = merge(var.common_tags, {
+      "Name" = var.cluster_name
+      "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    })
+  }
+  
+  tag_specifications {
+    resource_type = "volume"
+    tags = merge(var.common_tags, {
+      "Name" = "${var.cluster_name}-ondemand-volume"
+    })
+  }
+}
+
 # NodeGroups
 resource "aws_eks_node_group" "ondemand-node" {
   cluster_name    = aws_eks_cluster.eks[0].name
@@ -87,6 +110,11 @@ resource "aws_eks_node_group" "ondemand-node" {
     type = "ondemand"
   }
 
+  launch_template {
+    id      = aws_launch_template.ondemand.id
+    version = "$Latest"
+  }
+
   update_config {
     max_unavailable = 1
   }
@@ -97,6 +125,37 @@ resource "aws_eks_node_group" "ondemand-node" {
   })
 
   depends_on = [aws_eks_cluster.eks]
+}
+
+# Launch Template for Spot Nodes
+resource "aws_launch_template" "spot" {
+  name_prefix = "${var.cluster_name}-spot-"
+  key_name    = var.node_key_name
+  
+  user_data = base64encode(file("${path.module}/ssm-userdata.sh"))
+  
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      volume_size = 50
+      volume_type = "gp3"
+    }
+  }
+  
+  tag_specifications {
+    resource_type = "instance"
+    tags = merge(var.common_tags, {
+      "Name" = var.cluster_name
+      "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    })
+  }
+  
+  tag_specifications {
+    resource_type = "volume"
+    tags = merge(var.common_tags, {
+      "Name" = "${var.cluster_name}-spot-volume"
+    })
+  }
 }
 
 resource "aws_eks_node_group" "spot-node" {
@@ -124,8 +183,11 @@ resource "aws_eks_node_group" "spot-node" {
     type      = "spot"
     lifecycle = "spot"
   }
-  
-  disk_size = 50
+
+  launch_template {
+    id      = aws_launch_template.spot.id
+    version = "$Latest"
+  }
 
   tags = merge(var.common_tags, {
     "Name" = "${var.cluster_name}-spot-nodes"

@@ -150,19 +150,28 @@ aws dynamodb update-continuous-backups \
 
 echo "✓ Point-in-time recovery enabled"
 
+# Generate backend configuration file
+echo "Generating backend configuration..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cat > "${SCRIPT_DIR}/backend.hcl" <<EOF
+bucket         = "${BUCKET_NAME}"
+region         = "${REGION}"
+dynamodb_table = "${DYNAMODB_TABLE}"
+EOF
+
+echo "✓ Backend configuration file created: ${SCRIPT_DIR}/backend.hcl"
+
 echo ""
 echo "=========================================="
 echo "✓ Backend setup completed successfully!"
 echo "=========================================="
 echo ""
 echo "Next steps:"
-echo "1. Review backend.tf configuration"
-echo "2. Run: terraform init -migrate-state"
-echo "3. Verify state migration"
+echo "1. Run: terraform init -backend-config=backend.hcl"
+echo "2. Verify state migration"
 echo ""
-echo "State file structure:"
-echo "  - Default workspace: s3://${BUCKET_NAME}/eks-cluster/terraform.tfstate"
-echo "  - Dev workspace:     s3://${BUCKET_NAME}/env:/dev/eks-cluster/terraform.tfstate"
-echo "  - Stage workspace:   s3://${BUCKET_NAME}/env:/stage/eks-cluster/terraform.tfstate"
-echo "  - Prod workspace:    s3://${BUCKET_NAME}/env:/prod/eks-cluster/terraform.tfstate"
+echo "Backend details:"
+echo "  - Bucket: ${BUCKET_NAME}"
+echo "  - DynamoDB: ${DYNAMODB_TABLE}"
+echo "  - Region: ${REGION}"
 echo ""

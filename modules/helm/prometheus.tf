@@ -1,3 +1,8 @@
+resource "time_sleep" "wait_for_alb_controller" {
+  depends_on      = [helm_release.aws-load-balancer-controller]
+  create_duration = "90s"
+}
+
 resource "helm_release" "prometheus-helm" {
   name             = "prometheus"
   repository       = "https://prometheus-community.github.io/helm-charts"
@@ -10,6 +15,8 @@ resource "helm_release" "prometheus-helm" {
   replace          = true
 
   timeout = 2000
+
+  depends_on = [time_sleep.wait_for_alb_controller]
 
   set {
     name  = "podSecurityPolicy.enabled"

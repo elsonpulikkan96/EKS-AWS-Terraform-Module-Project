@@ -35,7 +35,7 @@ resource "helm_release" "argocd" {
     value = "false"
   }
 
-  depends_on = [helm_release.aws-load-balancer-controller]
+  depends_on = [time_sleep.wait_for_alb_controller]
 }
 
 data "kubernetes_service_v1" "argocd_server" {
@@ -43,5 +43,5 @@ data "kubernetes_service_v1" "argocd_server" {
     name      = "argocd-server"
     namespace = "argocd"
   }
-  depends_on = [helm_release.aws-load-balancer-controller]
+  depends_on = [helm_release.argocd]
 }

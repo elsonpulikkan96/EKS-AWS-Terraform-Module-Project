@@ -6,10 +6,10 @@
 set -e
 
 # Configuration
-BUCKET_NAME="spectrio-eks-terraform-state"
-DYNAMODB_TABLE="spectrio-eks-terraform-locks"
-REGION="us-east-1"
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+REGION="us-east-1"
+BUCKET_NAME="eks-terraform-state-${AWS_ACCOUNT_ID}"
+DYNAMODB_TABLE="eks-terraform-locks-${AWS_ACCOUNT_ID}"
 
 echo "=========================================="
 echo "Terraform Backend Setup"
@@ -67,7 +67,7 @@ echo "✓ Public access blocked"
 
 # Add bucket policy for secure access
 echo "Adding bucket policy..."
-cat > /tmp/bucket-policy.json <<'EOF'
+cat > /tmp/bucket-policy.json <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -77,8 +77,8 @@ cat > /tmp/bucket-policy.json <<'EOF'
             "Principal": "*",
             "Action": "s3:*",
             "Resource": [
-                "arn:aws:s3:::spectrio-eks-terraform-state",
-                "arn:aws:s3:::spectrio-eks-terraform-state/*"
+                "arn:aws:s3:::${BUCKET_NAME}",
+                "arn:aws:s3:::${BUCKET_NAME}/*"
             ],
             "Condition": {
                 "Bool": {
@@ -134,7 +134,7 @@ else
         --key-schema AttributeName=LockID,KeyType=HASH \
         --billing-mode PAY_PER_REQUEST \
         --region "${REGION}" \
-        --tags Key=Project,Value=spectrio-eks Key=ManagedBy,Value=terraform Key=Purpose,Value=state-locking
+        --tags Key=Project,Value=eks-terraform Key=ManagedBy,Value=terraform Key=Purpose,Value=state-locking
     
     echo "Waiting for table to be active..."
     aws dynamodb wait table-exists --table-name "${DYNAMODB_TABLE}" --region "${REGION}"

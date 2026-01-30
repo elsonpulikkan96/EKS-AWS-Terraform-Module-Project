@@ -45,16 +45,14 @@ resource "aws_eks_addon" "eks-addons" {
   for_each      = { for idx, addon in var.addons : idx => addon }
   cluster_name  = aws_eks_cluster.eks[0].name
   addon_name    = each.value.name
-  addon_version = lookup(each.value, "version", null) # Use null to auto-select compatible version
+  addon_version = lookup(each.value, "version", null)
 
-  # EBS CSI driver requires service account role
-  service_account_role_arn = each.value.name == "aws-ebs-csi-driver" ? var.eks_node_role_arn : null
+  # EBS CSI driver requires dedicated OIDC service account role
+  service_account_role_arn = each.value.name == "aws-ebs-csi-driver" ? aws_iam_role.ebs_csi_driver_role[0].arn : null
 
-  # Resolve conflicts by overwriting
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
 
-  # Increase timeout for slow addons
   timeouts {
     create = "30m"
     update = "30m"
@@ -63,7 +61,8 @@ resource "aws_eks_addon" "eks-addons" {
 
   depends_on = [
     aws_eks_node_group.ondemand-node,
-    aws_eks_node_group.spot-node
+    aws_eks_node_group.spot-node,
+    aws_iam_role.ebs_csi_driver_role
   ]
 }
 
@@ -91,12 +90,10 @@ resource "aws_eks_node_group" "ondemand-node" {
   update_config {
     max_unavailable = 1
   }
+
   tags = merge(var.common_tags, {
     "Name" = "${var.cluster_name}-ondemand-nodes"
-  })
-  tags_all = merge(var.common_tags, {
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    "Name"                                      = "${var.cluster_name}-ondemand-nodes"
   })
 
   depends_on = [aws_eks_cluster.eks]
@@ -122,21 +119,18 @@ resource "aws_eks_node_group" "spot-node" {
   update_config {
     max_unavailable = 1
   }
-  tags = merge(var.common_tags, {
-    "Name" = "${var.cluster_name}-spot-nodes"
-  })
-  tags_all = merge(var.common_tags, {
-    "kubernetes.io/cluster/${var.cluster_name}" = "owned" # The resource is created and managed specifically for this cluster. If the cluster is deleted, these resources should be cleaned up.
-    "Name"                                      = "${var.cluster_name}-ondemand-nodes"
-  })
-
-  # "shared": The resource can be used by multiple clusters (less common for node groups, more for subnets/VPCs).
 
   labels = {
     type      = "spot"
     lifecycle = "spot"
   }
+  
   disk_size = 50
+
+  tags = merge(var.common_tags, {
+    "Name" = "${var.cluster_name}-spot-nodes"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+  })
 
   depends_on = [aws_eks_cluster.eks]
 }

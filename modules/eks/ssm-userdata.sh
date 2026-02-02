@@ -5,3 +5,6 @@ set -e
 yum install -y amazon-ssm-agent
 systemctl enable amazon-ssm-agent
 systemctl start amazon-ssm-agent
+
+# Bootstrap the node to join the EKS cluster
+/etc/eks/bootstrap.sh ${CLUSTER_NAME}

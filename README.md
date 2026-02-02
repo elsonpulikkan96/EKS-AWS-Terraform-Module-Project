@@ -316,9 +316,9 @@ Both **Bastion Host** and **EKS Worker Nodes** are configured with AWS Systems M
 - **Installation**: `snap install amazon-ssm-agent --classic`
 
 #### ✅ EKS Worker Nodes (Amazon Linux 2)
-- **SSM Agent**: Installed via userdata in launch templates
-- **IAM Policy**: `AmazonSSMManagedInstanceCore`
-- **Script**: `modules/eks/ssm-userdata.sh`
+- **SSM Agent**: **PRE-INSTALLED** in EKS Optimized AMI (no custom installation needed)
+- **IAM Policy**: `AmazonSSMManagedInstanceCore` attached to node role
+- **Note**: SSM agent has been included in EKS Optimized AMI since 2020
 - **Applied To**: Both on-demand and spot node groups
 
 ### Benefits of SSM Session Manager

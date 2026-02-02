@@ -213,7 +213,13 @@ terraform workspace new <workspace-name>
 ### Dev Environment
 
 ```bash
+# Initialize backend (if not already done)
+terraform init -backend-config=backend.hcl
+
+# Select workspace
 terraform workspace select dev
+
+# Plan and apply
 terraform plan -var-file="dev.tfvars"
 terraform apply -var-file="dev.tfvars" -auto-approve
 ```
@@ -221,7 +227,13 @@ terraform apply -var-file="dev.tfvars" -auto-approve
 ### Stage Environment
 
 ```bash
+# Initialize backend (if not already done)
+terraform init -backend-config=backend.hcl
+
+# Select workspace
 terraform workspace select stage
+
+# Plan and apply
 terraform plan -var-file="stage.tfvars"
 terraform apply -var-file="stage.tfvars" -auto-approve
 ```
@@ -229,7 +241,13 @@ terraform apply -var-file="stage.tfvars" -auto-approve
 ### Prod Environment
 
 ```bash
+# Initialize backend (if not already done)
+terraform init -backend-config=backend.hcl
+
+# Select workspace
 terraform workspace select prod
+
+# Plan and apply
 terraform plan -var-file="prod.tfvars"
 terraform apply -var-file="prod.tfvars" -auto-approve
 ```

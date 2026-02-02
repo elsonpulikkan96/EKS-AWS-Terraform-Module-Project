@@ -15,6 +15,14 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 2.0"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.0"
+    }
   }
 }
 
@@ -27,13 +35,3 @@ provider "aws" {
     }
   }
 }
-
-
-
-# backend "s3" {
-#   bucket         = "dev-harish-eks-cluster-bucket"
-#   region         = "ap-south-1"
-#   key            = "terraform.tfstate"
-#   use_lockfile   = true
-#   encrypt        = true
-# }

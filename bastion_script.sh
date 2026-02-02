@@ -4,6 +4,13 @@ set -euxo pipefail
 export DEBIAN_FRONTEND=noninteractive
 
 ############################################
+# Install SSM Agent (Ubuntu)
+############################################
+snap install amazon-ssm-agent --classic
+systemctl enable snap.amazon-ssm-agent.amazon-ssm-agent.service
+systemctl start snap.amazon-ssm-agent.amazon-ssm-agent.service
+
+############################################
 # System Update & Base Packages
 ############################################
 apt-get update -y
@@ -126,4 +133,4 @@ chmod +x /etc/profile.d/helm.sh
 ############################################
 # Done
 ############################################
-echo "kubectl, eksctl, and helm installed successfully"
+echo "SSM Agent, kubectl, eksctl, and helm installed successfully"

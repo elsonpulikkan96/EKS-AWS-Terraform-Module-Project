@@ -3,6 +3,17 @@ output "bastion_public_ip" {
   value = module.bastion.bastion_public_ip
 }
 
+output "ssh_key_name" {
+  value       = aws_key_pair.eks_key.key_name
+  description = "Auto-generated SSH key pair name (format: eks-<env>-<account_id>)"
+}
+
+output "ssh_private_key_path" {
+  description = "Path to the generated private key file"
+  value       = "${path.module}/${local.key_name}.pem"
+  sensitive   = true
+}
+
 output "eks_cluster_endpoint" {
   value = module.eks.cluster_endpoint
 }

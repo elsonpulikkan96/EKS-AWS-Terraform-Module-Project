@@ -67,7 +67,7 @@ module "eks" {
   min_capacity_spot          = var.min_capacity_spot
   max_capacity_spot          = var.max_capacity_spot
   addons                     = var.addons
-  node_key_name              = var.bastion_key_name
+  node_key_name              = aws_key_pair.eks_key.key_name
   common_tags                = local.common_tags
 
   depends_on = [module.vpc]
@@ -80,7 +80,7 @@ module "bastion" {
   instance_type             = var.bastion_instance_type
   subnet_id                 = module.vpc.public_subnets[0] # Use public subnet for bastion
   security_groups           = [module.sg.bastion_sg_id]
-  key_name                  = var.bastion_key_name
+  key_name                  = aws_key_pair.eks_key.key_name
   tags                      = merge(local.common_tags, var.bastion_tags)
   user_data                 = file("bastion_script.sh")
   iam_instance_profile_name = module.iam.bastion_iam_instance_profile_name

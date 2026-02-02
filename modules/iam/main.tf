@@ -155,7 +155,10 @@ resource "aws_iam_role" "bastion_role" {
   tags = var.common_tags
 }
 
-
+resource "aws_iam_role_policy_attachment" "bastion_ssm_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.bastion_role.name
+}
 
 resource "aws_iam_role_policy_attachment" "bastion_admin_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"

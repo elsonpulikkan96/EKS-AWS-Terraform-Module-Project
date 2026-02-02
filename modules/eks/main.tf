@@ -70,6 +70,7 @@ resource "aws_eks_addon" "eks-addons" {
 resource "aws_launch_template" "ondemand" {
   name_prefix = "${var.cluster_name}-ondemand-"
   key_name    = var.node_key_name
+  user_data   = base64encode(file("${path.module}/ssm-userdata.sh"))
   
   tag_specifications {
     resource_type = "instance"
@@ -129,6 +130,7 @@ resource "aws_eks_node_group" "ondemand-node" {
 resource "aws_launch_template" "spot" {
   name_prefix = "${var.cluster_name}-spot-"
   key_name    = var.node_key_name
+  user_data   = base64encode(file("${path.module}/ssm-userdata.sh"))
   
   block_device_mappings {
     device_name = "/dev/xvda"

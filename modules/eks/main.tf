@@ -9,6 +9,7 @@ resource "aws_eks_cluster" "eks" {
     subnet_ids              = var.subnet_ids
     endpoint_private_access = var.endpoint_private_access
     endpoint_public_access  = var.endpoint_public_access
+    public_access_cidrs     = var.endpoint_public_access ? var.public_access_cidrs : null
     security_group_ids      = var.security_group_ids
   }
 

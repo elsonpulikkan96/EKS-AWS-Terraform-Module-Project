@@ -21,7 +21,9 @@ Complete infrastructure-as-code solution for deploying production-ready Amazon E
 9. [Monitoring & Observability](#9-monitoring--observability)
 10. [Tagging Strategy](#10-tagging-strategy)
 11. [Troubleshooting](#11-troubleshooting)
-12. [Cleanup & Destroy](#12-cleanup--destroy)
+12. [Common Issues & Solutions](#12-common-issues--solutions)
+13. [Cleanup & Destroy](#13-cleanup--destroy)
+14. [Architecture Decisions](#14-architecture-decisions)
 
 ---
 
@@ -209,6 +211,31 @@ terraform workspace new <workspace-name>
 ---
 
 ## 4. Infrastructure Deployment
+
+### Important: Cross-Account Reusability
+
+This code is designed for **reusability across different AWS accounts**. The EKS cluster API endpoint is configured with:
+
+- **Public Access Enabled**: Allows Terraform to deploy Helm charts from anywhere
+- **Public Access CIDRs**: Configurable per environment (default: `0.0.0.0/0` for dev/stage)
+- **Private Access Enabled**: Allows bastion and worker nodes to communicate via private endpoint
+
+**Why this matters**: When deploying the bastion and EKS cluster in the same Terraform run, Terraform needs to reach the EKS API endpoint to install Helm charts BEFORE the bastion exists. Public endpoint access solves this chicken-and-egg problem.
+
+### Quick Deploy (Recommended)
+
+```bash
+# Deploy dev environment
+./deploy.sh dev
+
+# Deploy stage environment
+./deploy.sh stage
+
+# Deploy prod environment (requires VPN/bastion access)
+./deploy.sh prod
+```
+
+### Manual Deployment
 
 ### Dev Environment
 
@@ -620,7 +647,112 @@ kubectl auth can-i get pods --all-namespaces
 
 ---
 
-## 12. Cleanup & Destroy
+## 12. Common Issues & Solutions
+
+### Issue 1: "Kubernetes cluster unreachable: dial tcp 10.x.x.x:443: i/o timeout"
+
+**Root Cause:**
+Terraform is trying to reach the EKS API endpoint but getting a private IP that's unreachable from your current location.
+
+**Why This Happens:**
+When both `endpoint_private_access = true` and `endpoint_public_access = true` are enabled, AWS EKS DNS resolution returns:
+- **Private IP** to clients within the VPC
+- **Public IP** to clients outside the VPC
+
+However, if you're running Terraform from a machine that's in a different VPC (without peering/transit gateway) or behind a NAT that AWS doesn't recognize as "external", you may get the private IP but can't route to it.
+
+**Solution:**
+Explicitly configure `public_access_cidrs` in your tfvars:
+
+```hcl
+# Dev/Stage: Allow from anywhere
+endpoint_private_access = true
+endpoint_public_access  = true
+public_access_cidrs     = ["0.0.0.0/0"]
+
+# Production: Restrict to specific IPs
+public_access_cidrs = ["203.0.113.0/24"]  # Your office/VPN IP
+
+# Or private only (requires bastion deployment)
+endpoint_public_access = false
+public_access_cidrs    = []
+```
+
+**Quick Fix:**
+```bash
+# 1. Update tfvars
+echo 'public_access_cidrs = ["0.0.0.0/0"]' >> dev.tfvars
+
+# 2. Update cluster
+terraform apply -var-file=dev.tfvars -target=module.eks
+
+# 3. Wait 2-3 minutes for endpoint update
+
+# 4. Retry full deployment
+terraform apply -var-file=dev.tfvars
+```
+
+### Issue 2: "User data was not in the MIME multipart format"
+
+**Root Cause:**
+Custom user data in launch templates must be in MIME multipart format when used with EKS node groups.
+
+**Solution:**
+**DON'T add custom user data!** SSM Agent is pre-installed in EKS Optimized AMI since 2020.
+
+```hcl
+# CORRECT: No user data needed
+resource "aws_launch_template" "ondemand" {
+  name_prefix = "${var.cluster_name}-ondemand-"
+  key_name    = var.node_key_name
+  
+  # Note: SSM Agent is pre-installed in EKS Optimized AMI
+  # No custom user_data needed - EKS handles bootstrap automatically
+}
+```
+
+**Why This Works:**
+- ✅ SSM Agent pre-installed in EKS Optimized AMI
+- ✅ IAM policy `AmazonSSMManagedInstanceCore` attached to node role
+- ✅ EKS automatically bootstraps nodes
+- ✅ No manual installation needed
+
+### Issue 3: Data Source "kubernetes_service_v1" Not Found
+
+**Root Cause:**
+Data sources are read during plan phase before services are created.
+
+**Solution:**
+Already fixed with explicit `time_sleep` resources and `depends_on` in helm module.
+
+### Issue 4: Provider Initialization Fails on Fresh Deployment
+
+**Root Cause:**
+Kubernetes/Helm providers try to connect to cluster that doesn't exist yet.
+
+**Solution:**
+Already fixed with `try()` functions in provider.tf to handle missing values gracefully.
+
+### Issue 5: Workspace vs Environment Mismatch
+
+**Problem:**
+Running `terraform workspace select prod` with `dev.tfvars` creates mismatched resources.
+
+**Solution:**
+Always verify workspace matches tfvars:
+
+```bash
+# Check current workspace
+terraform workspace show
+
+# Ensure it matches your tfvars
+terraform workspace select dev
+terraform apply -var-file=dev.tfvars
+```
+
+---
+
+## 13. Cleanup & Destroy
 
 ### Delete Kubernetes Deployments
 
@@ -668,6 +800,171 @@ aws s3api delete-bucket --bucket spectrio-eks-terraform-state --region us-east-1
 # Delete DynamoDB table
 aws dynamodb delete-table --table-name spectrio-eks-terraform-locks --region us-east-1
 ```
+
+---
+
+## 14. Architecture Decisions
+
+### Why Public Endpoint Access?
+
+**Design Decision:** Enable public endpoint access for dev/stage environments to allow Terraform deployment from anywhere.
+
+**The Challenge:**
+When deploying bastion + EKS + Helm in a single Terraform run:
+1. Helm/Kubernetes providers need to reach EKS API endpoint
+2. Bastion doesn't exist yet during first deployment
+3. Running Terraform from outside the VPC requires public endpoint access
+
+**The Solution:**
+```hcl
+# Dev/Stage: Public access enabled
+endpoint_private_access = true
+endpoint_public_access  = true
+public_access_cidrs     = ["0.0.0.0/0"]
+
+# Production: Private only (deploy from bastion or CI/CD in VPC)
+endpoint_private_access = true
+endpoint_public_access  = false
+```
+
+**Benefits:**
+- ✅ Deploy from any AWS account
+- ✅ Deploy from any location (laptop, CI/CD, bastion)
+- ✅ No VPN required for dev/stage
+- ✅ Faster iteration cycles
+- ✅ True cross-account reusability
+
+**Security:**
+- Private endpoint always enabled for internal communication
+- Public access can be restricted by CIDR
+- Production uses private-only access
+- All API calls authenticated via IAM
+
+### Why No Custom User Data?
+
+**Design Decision:** Don't add custom user data to EKS node launch templates.
+
+**The Reality:**
+- SSM Agent is **pre-installed** in EKS Optimized AMI since 2020
+- EKS automatically handles node bootstrapping
+- Custom user data requires MIME multipart format
+- Adding unnecessary user data increases complexity
+
+**What We Do Instead:**
+- Attach IAM policy: `AmazonSSMManagedInstanceCore`
+- Let EKS handle bootstrap automatically
+- Use launch templates only for SSH keys, tags, and EBS volumes
+
+### Why Separate Security Groups?
+
+**Design Decision:** Use VPC CIDR-based rules instead of security group references.
+
+**The Problem with SG References:**
+```hcl
+# This creates circular dependency
+ingress {
+  security_groups = [aws_security_group.bastion-sg.id]
+}
+```
+
+**Our Approach:**
+```hcl
+# Use VPC CIDR instead
+ingress {
+  cidr_blocks = [var.vpc_cidr]
+}
+```
+
+**Benefits:**
+- ✅ No circular dependencies
+- ✅ Simpler resource graph
+- ✅ Works with external access patterns
+- ✅ More flexible for CI/CD
+
+### Why try() in Providers?
+
+**Design Decision:** Use `try()` functions in Kubernetes/Helm provider configuration.
+
+**The Problem:**
+Providers are initialized **before** resources are created. If cluster doesn't exist:
+- `module.eks.cluster_endpoint` is null
+- Provider initialization fails
+- Terraform can't proceed
+
+**The Solution:**
+```hcl
+provider "kubernetes" {
+  host = try(module.eks.cluster_endpoint, "")
+  cluster_ca_certificate = try(base64decode(module.eks.cluster_certificate_authority_data), "")
+}
+```
+
+**Benefits:**
+- ✅ Graceful handling of missing cluster
+- ✅ Works on fresh deployments
+- ✅ Works during destroy operations
+- ✅ No manual intervention needed
+
+### Why Explicit Waits?
+
+**Design Decision:** Add `time_sleep` resources between Helm releases and data sources.
+
+**The Problem:**
+- Helm releases create Kubernetes resources asynchronously
+- Data sources try to read resources immediately
+- Race condition causes random failures
+
+**The Solution:**
+```hcl
+resource "time_sleep" "wait_for_prometheus" {
+  depends_on      = [helm_release.prometheus-helm]
+  create_duration = "120s"
+}
+
+data "kubernetes_service_v1" "prometheus_server" {
+  depends_on = [time_sleep.wait_for_prometheus]
+}
+```
+
+**Benefits:**
+- ✅ Reliable deployments
+- ✅ No random failures
+- ✅ Predictable behavior
+- ✅ Works across all AWS accounts
+
+### Why Workspace + Environment Variable?
+
+**Design Decision:** Use both Terraform workspaces AND environment variable.
+
+**The Approach:**
+- Workspaces: Isolate state files
+- Environment variable: Control resource naming and configuration
+
+**Why Both?**
+```hcl
+# Workspace: State isolation
+terraform workspace select dev
+
+# Environment variable: Resource naming
+cluster_name = "${var.env}-${var.cluster_name}"
+```
+
+**Benefits:**
+- ✅ State isolation per environment
+- ✅ Consistent naming regardless of workspace
+- ✅ Prevents workspace/config mismatch
+- ✅ Clear environment identification
+
+### Critical Fixes Applied
+
+| Issue | Impact | Solution |
+|-------|--------|----------|
+| Provider dependency on non-existent cluster | 🔴 Breaks fresh deployments | Added `try()` functions |
+| Security group circular dependency | 🔴 Fragile resource graph | Use VPC CIDR instead of SG refs |
+| Data source race conditions | 🟠 Random failures | Added explicit `time_sleep` waits |
+| Default public_access_cidrs = 0.0.0.0/0 | 🟡 Security risk | Removed default, added validation |
+| Workspace vs env mismatch | 🟡 Wrong naming | Use `var.env` consistently |
+| Helm timeout inconsistency | 🟢 Unpredictable timeouts | Standardized to 600-2000s |
 
 ---
 

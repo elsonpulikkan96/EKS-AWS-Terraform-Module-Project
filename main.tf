@@ -22,6 +22,7 @@ module "sg" {
 
   env         = var.env
   vpc_id      = module.vpc.vpc_id
+  vpc_cidr    = var.vpc_cidr_block
   common_tags = local.common_tags
 }
 
@@ -57,6 +58,7 @@ module "eks" {
   cluster_version            = var.cluster_version
   endpoint_private_access    = var.endpoint_private_access
   endpoint_public_access     = var.endpoint_public_access
+  public_access_cidrs        = var.public_access_cidrs
   authentication_mode        = var.authentication_mode
   ondemand_instance_types    = var.ondemand_instance_types
   spot_instance_types        = var.spot_instance_types
@@ -76,9 +78,9 @@ module "eks" {
 module "bastion" {
   source = "./modules/bastion"
 
-  image_id                  = var.bastion_image_id
+  image_id                  = coalesce(var.bastion_image_id, data.aws_ami.ubuntu.id)
   instance_type             = var.bastion_instance_type
-  subnet_id                 = module.vpc.public_subnets[0] # Use public subnet for bastion
+  subnet_id                 = module.vpc.public_subnets[0]
   security_groups           = [module.sg.bastion_sg_id]
   key_name                  = aws_key_pair.eks_key.key_name
   tags                      = merge(local.common_tags, var.bastion_tags)

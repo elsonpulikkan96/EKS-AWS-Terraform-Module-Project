@@ -49,11 +49,19 @@ resource "helm_release" "prometheus-helm" {
   }
 }
 
+# Wait for services to be created before reading them
+resource "time_sleep" "wait_for_prometheus" {
+  depends_on      = [helm_release.prometheus-helm]
+  create_duration = "120s"
+}
+
 data "kubernetes_service_v1" "prometheus_server" {
   metadata {
     name      = "prometheus-kube-prometheus-prometheus"
     namespace = "prometheus"
   }
+  
+  depends_on = [time_sleep.wait_for_prometheus]
 }
 
 data "kubernetes_service_v1" "grafana_server" {
@@ -61,4 +69,6 @@ data "kubernetes_service_v1" "grafana_server" {
     name      = "prometheus-grafana"
     namespace = "prometheus"
   }
+  
+  depends_on = [time_sleep.wait_for_prometheus]
 }

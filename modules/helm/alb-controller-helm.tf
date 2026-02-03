@@ -3,8 +3,9 @@ resource "helm_release" "aws-load-balancer-controller" {
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
   version    = "1.17.0"
-  # timeout         = 2000
-  namespace       = "kube-system"
+  namespace  = "kube-system"
+  
+  timeout         = 600  # 10 minutes
   cleanup_on_fail = true
   recreate_pods   = true
   replace         = true

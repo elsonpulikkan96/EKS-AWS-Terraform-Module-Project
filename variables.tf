@@ -27,6 +27,16 @@ variable "is_eks_cluster_enabled" {}
 variable "cluster_version" {}
 variable "endpoint_private_access" {}
 variable "endpoint_public_access" {}
+
+variable "public_access_cidrs" {
+  type        = list(string)
+  description = "CIDR blocks allowed to access EKS public API endpoint. REQUIRED for each environment."
+  
+  validation {
+    condition     = length(var.public_access_cidrs) > 0 || !var.endpoint_public_access
+    error_message = "public_access_cidrs must be explicitly set when endpoint_public_access is true. Use ['0.0.0.0/0'] for unrestricted access or specific CIDRs for production."
+  }
+}
 variable "authentication_mode" {}
 
 variable "ondemand_instance_types" {}
@@ -47,7 +57,9 @@ variable "addons" {
 
 # Bastion
 variable "bastion_image_id" {
-  type = string
+  type        = string
+  default     = null
+  description = "AMI ID for bastion host. If not provided, uses latest Ubuntu 24.04 LTS for the region."
 }
 
 variable "bastion_instance_type" {

@@ -31,6 +31,12 @@ variable "endpoint_public_access" {
   type = bool
 }
 
+variable "public_access_cidrs" {
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+  description = "CIDR blocks allowed to access EKS public API endpoint"
+}
+
 variable "addons" {
   type = list(object({
     name    = string

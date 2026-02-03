@@ -10,9 +10,10 @@ private_subnet = ["10.2.4.0/24", "10.2.5.0/24", "10.2.6.0/24"]
 # EKS
 is_eks_cluster_enabled  = true
 cluster_version         = "1.35"
-cluster_name            = "spectrio-prod-eks-cluster"
+cluster_name            = "prod-eks-cluster"
 endpoint_private_access = true
 endpoint_public_access  = false
+public_access_cidrs     = []  # Prod: private only
 authentication_mode     = "API_AND_CONFIG_MAP"
 
 ondemand_instance_types = ["t3a.large"]
@@ -52,7 +53,7 @@ addons = [
 
 
 #BASTION
-bastion_image_id      = "ami-0b6c6ebed2801a5cb" # Ubuntu 24.04 LTS for us-east-1
+# bastion_image_id is optional - will auto-detect latest Ubuntu 24.04 LTS for your region
 bastion_instance_type = "t2.small"
 bastion_tags          = { Name = "bastion-prod" }
 

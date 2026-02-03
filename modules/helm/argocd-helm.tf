@@ -38,10 +38,15 @@ resource "helm_release" "argocd" {
   depends_on = [time_sleep.wait_for_alb_controller]
 }
 
+resource "time_sleep" "wait_for_argocd" {
+  depends_on      = [helm_release.argocd]
+  create_duration = "90s"
+}
+
 data "kubernetes_service_v1" "argocd_server" {
   metadata {
     name      = "argocd-server"
     namespace = "argocd"
   }
-  depends_on = [helm_release.argocd]
+  depends_on = [time_sleep.wait_for_argocd]
 }

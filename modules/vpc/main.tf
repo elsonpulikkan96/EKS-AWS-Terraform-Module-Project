@@ -67,22 +67,23 @@ resource "aws_internet_gateway" "igw" {
 
 
 resource "aws_eip" "nat_eip" {
+  count  = 2
   domain = "vpc"
 
   tags = merge(var.common_tags, {
-    Name = "nat_eip-${var.env}-${terraform.workspace}"
+    Name = "nat_eip-${var.env}-${count.index + 1}-${terraform.workspace}"
   })
 
   depends_on = [aws_vpc.main]
-
 }
 
 resource "aws_nat_gateway" "nat_gateway" {
-  allocation_id = aws_eip.nat_eip.id
-  subnet_id     = aws_subnet.public_subnet[0].id
+  count         = 2
+  allocation_id = aws_eip.nat_eip[count.index].id
+  subnet_id     = aws_subnet.public_subnet[count.index].id
 
   tags = merge(var.common_tags, {
-    Name = "nat_gw-${var.env}-${terraform.workspace}"
+    Name = "nat_gw-${var.env}-${count.index + 1}-${terraform.workspace}"
   })
 
   depends_on = [aws_vpc.main, aws_eip.nat_eip]
@@ -120,15 +121,16 @@ resource "aws_route_table_association" "public_rt_association" {
 
 
 resource "aws_route_table" "private_rt" {
+  count  = length(var.private_subnet)
   vpc_id = aws_vpc.main.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gateway.id
+    nat_gateway_id = aws_nat_gateway.nat_gateway[count.index % 2].id
   }
 
   tags = merge(var.common_tags, {
-    Name = "private_rt-${var.env}-${terraform.workspace}"
+    Name = "private_rt-${var.env}-${count.index + 1}-${terraform.workspace}"
     env  = var.env
   })
 
@@ -138,8 +140,7 @@ resource "aws_route_table" "private_rt" {
 resource "aws_route_table_association" "private_rt_association" {
   count          = length(var.private_subnet)
   subnet_id      = aws_subnet.private_subnet[count.index].id
-  route_table_id = aws_route_table.private_rt.id
-
+  route_table_id = aws_route_table.private_rt[count.index].id
 
   depends_on = [aws_vpc.main, aws_subnet.private_subnet]
 }

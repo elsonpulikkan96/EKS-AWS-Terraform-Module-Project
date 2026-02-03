@@ -5,11 +5,7 @@ resource "helm_release" "aws-load-balancer-controller" {
   version    = "1.17.0"
   namespace  = "kube-system"
   
-  timeout         = 600  # 10 minutes
-  cleanup_on_fail = true
-  recreate_pods   = true
-  replace         = true
-  force_update    = true
+  timeout = 600
 
   set {
     name  = "clusterName"
@@ -49,6 +45,4 @@ resource "helm_release" "aws-load-balancer-controller" {
       }
     })
   ]
-
-  # depends_on = [kubernetes_service_account.alb_controller_sa]
 }

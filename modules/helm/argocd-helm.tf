@@ -5,14 +5,11 @@ resource "helm_release" "argocd" {
   version          = "9.3.1"
   namespace        = "argocd"
   create_namespace = true
-  #   timeout          = 2000
-  cleanup_on_fail = true
-  recreate_pods   = true
-  replace         = true
+  timeout          = 600
 
   set {
     name  = "server.service.type"
-    value = "LoadBalancer" #LoadBalancer #ClusterIP #NodePort
+    value = "LoadBalancer"
   }
 
   set {

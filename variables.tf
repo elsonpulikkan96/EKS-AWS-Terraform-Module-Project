@@ -31,11 +31,6 @@ variable "endpoint_public_access" {}
 variable "public_access_cidrs" {
   type        = list(string)
   description = "CIDR blocks allowed to access EKS public API endpoint. REQUIRED for each environment."
-  
-  validation {
-    condition     = length(var.public_access_cidrs) > 0 || !var.endpoint_public_access
-    error_message = "public_access_cidrs must be explicitly set when endpoint_public_access is true. Use ['0.0.0.0/0'] for unrestricted access or specific CIDRs for production."
-  }
 }
 variable "authentication_mode" {}
 

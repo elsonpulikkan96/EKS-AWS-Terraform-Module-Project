@@ -10,11 +10,7 @@ resource "helm_release" "prometheus-helm" {
   version          = "81.0.0"
   namespace        = "prometheus"
   create_namespace = true
-  cleanup_on_fail  = true
-  recreate_pods    = true
-  replace          = true
-
-  timeout = 2000
+  timeout          = 2000
 
   depends_on = [time_sleep.wait_for_alb_controller]
 

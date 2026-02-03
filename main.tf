@@ -109,6 +109,25 @@ resource "aws_eks_access_policy_association" "bastion_admin" {
   depends_on = [module.eks]
 }
 
+# Wait for OIDC provider to propagate in IAM
+resource "time_sleep" "wait_for_oidc" {
+  depends_on      = [module.iam]
+  create_duration = "30s"
+}
+
+# Wait for cluster and nodes to be ready
+resource "null_resource" "wait_for_cluster_ready" {
+  depends_on = [module.eks]
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      aws eks wait cluster-active --name ${module.eks.cluster_name} --region ${var.region}
+      aws eks update-kubeconfig --name ${module.eks.cluster_name} --region ${var.region}
+      kubectl wait --for=condition=Ready nodes --all --timeout=300s
+    EOT
+  }
+}
+
 module "helm" {
   source = "./modules/helm"
 
@@ -117,5 +136,5 @@ module "helm" {
   region                  = var.region
   alb_controller_role_arn = module.iam.alb_controller_role_arn
 
-  depends_on = [module.eks, module.vpc, module.iam]
+  depends_on = [null_resource.wait_for_cluster_ready, time_sleep.wait_for_oidc]
 }

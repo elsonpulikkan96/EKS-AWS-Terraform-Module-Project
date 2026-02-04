@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/elsonpulikkan/EKS-AWS-Terraform-Module-Project.git
+    repoURL: https://github.com/elsonpulikkan96/EKS-AWS-Terraform-Module-Project.git
     targetRevision: HEAD
     path: deployment
     directory:

@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ecommerce-apps
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/elsonpulikkan96/EKS-AWS-Terraform-Module-Project.git
+    targetRevision: HEAD
+    path: deployment
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

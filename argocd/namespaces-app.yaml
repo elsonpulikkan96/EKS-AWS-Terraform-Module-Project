@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: amazon-app
+  name: namespaces-app
   namespace: argocd
 spec:
   project: default
@@ -10,13 +10,10 @@ spec:
     targetRevision: HEAD
     path: deployment
     directory:
-      include: 'amazon-deployment.yaml'
+      include: 'namespace.yml'
   destination:
     server: https://kubernetes.default.svc
-    namespace: amazon-ns
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true

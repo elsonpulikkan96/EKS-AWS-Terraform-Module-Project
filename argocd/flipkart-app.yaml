@@ -10,7 +10,7 @@ spec:
     targetRevision: HEAD
     path: deployment
     directory:
-      include: '{namespace.yml,flipkart-deployment.yaml}'
+      include: 'flipkart-deployment.yaml'
   destination:
     server: https://kubernetes.default.svc
     namespace: flipkart-ns

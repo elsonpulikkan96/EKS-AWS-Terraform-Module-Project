@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: amazon-app-container
-          image: elsonpulikkan/estrore-amazon:latest # Use your actual Docker image name and tag
+          image: elsonpulikkan/estore-amazon:latest # Use your actual Docker image name and tag
           ports:
             - containerPort: 80 # The port your game app is listening on
           resources:

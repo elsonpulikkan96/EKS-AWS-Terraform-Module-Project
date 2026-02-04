@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/elsonpulikkan/EKS-AWS-Terraform-Module-Project.git
+    targetRevision: HEAD
+    path: deployment
+    directory:
+      include: 'ingress-updated.yaml'
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

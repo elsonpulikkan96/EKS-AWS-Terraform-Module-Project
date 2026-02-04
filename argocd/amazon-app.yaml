@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: amazon-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/elsonpulikkan/EKS-AWS-Terraform-Module-Project.git
+    targetRevision: HEAD
+    path: deployment
+    directory:
+      include: '{namespace.yml,amazon-deployment.yaml}'
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: amazon-ns
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -123,7 +123,14 @@ resource "null_resource" "wait_for_cluster_ready" {
     command = <<-EOT
       aws eks wait cluster-active --name ${module.eks.cluster_name} --region ${var.region}
       aws eks update-kubeconfig --name ${module.eks.cluster_name} --region ${var.region}
-      kubectl wait --for=condition=Ready nodes --all --timeout=300s
+      
+      # Wait for nodes (skip if kubectl not installed)
+      if command -v kubectl &> /dev/null; then
+        kubectl wait --for=condition=Ready nodes --all --timeout=300s
+      else
+        echo "kubectl not found, skipping node readiness check"
+        sleep 120
+      fi
     EOT
   }
 }

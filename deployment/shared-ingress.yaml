@@ -6,7 +6,8 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:648890865579:certificate/f5d7e589-640f-4191-a0f9-93933545b7d5
+    # Replace with your ACM certificate ARN
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:648890865579:certificate/8a21fc5b-2d94-4da9-9c56-aa2b0b62d378
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     alb.ingress.kubernetes.io/ssl-redirect: '443'
     alb.ingress.kubernetes.io/group.name: shared-alb
@@ -23,16 +24,6 @@ spec:
             name: amazon
             port:
               number: 80
-  - host: flipkart.lucintelsolutions.online
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: flipkart
-            port:
-              number: 80
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -41,6 +32,9 @@ metadata:
   namespace: flipkart
   annotations:
     alb.ingress.kubernetes.io/group.name: shared-alb
+    alb.ingress.kubernetes.io/target-type: ip
+    # Replace with your ACM certificate ARN
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:648890865579:certificate/8a21fc5b-2d94-4da9-9c56-aa2b0b62d378
 spec:
   ingressClassName: alb
   rules:

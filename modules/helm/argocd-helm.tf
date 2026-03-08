@@ -9,22 +9,12 @@ resource "helm_release" "argocd" {
 
   set {
     name  = "server.service.type"
-    value = "LoadBalancer"
-  }
-
-  set {
-    name  = "server.ingress.enabled"
-    value = "false"
+    value = "ClusterIP"
   }
 
   set {
     name  = "server.extraArgs[0]"
     value = "--insecure"
-  }
-
-  set {
-    name  = "server.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-internal"
-    value = "false"
   }
 
   set {
@@ -37,13 +27,42 @@ resource "helm_release" "argocd" {
 
 resource "time_sleep" "wait_for_argocd" {
   depends_on      = [helm_release.argocd]
-  create_duration = "90s"
+  create_duration = "30s"
 }
 
-data "kubernetes_service_v1" "argocd_server" {
+resource "kubernetes_ingress_v1" "argocd" {
   metadata {
-    name      = "argocd-server"
+    name      = "argocd-ingress"
     namespace = "argocd"
+    annotations = {
+      "alb.ingress.kubernetes.io/group.name"    = "shared-alb"
+      "alb.ingress.kubernetes.io/target-type"   = "ip"
+      "alb.ingress.kubernetes.io/scheme"        = "internet-facing"
+      "alb.ingress.kubernetes.io/backend-protocol" = "HTTP"
+    }
   }
+
+  spec {
+    ingress_class_name = "alb"
+
+    rule {
+      host = "argocd.${var.domain_name}"
+      http {
+        path {
+          path      = "/"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = "argocd-server"
+              port {
+                number = 80
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   depends_on = [time_sleep.wait_for_argocd]
 }

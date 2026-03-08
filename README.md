@@ -49,6 +49,28 @@ terraform init -backend-config=backend.hcl
 ./deploy.sh stage  # Deploy stage environment
 ```
 
+### Deploy Sample Applications
+
+After EKS cluster is ready, deploy sample e-commerce apps:
+
+```bash
+kubectl apply -f deployment/namespaces.yaml
+kubectl apply -f deployment/amazon-deployment.yaml
+kubectl apply -f deployment/flipkart-deployment.yaml
+kubectl apply -f deployment/shared-ingress.yaml
+```
+
+**Apps will be available at:**
+- https://amazon.lucintelsolutions.online
+- https://flipkart.lucintelsolutions.online
+
+**Architecture:**
+- 2 namespaces: `amazon` and `flipkart`
+- 3 replicas per app for high availability
+- Shared Application Load Balancer (ALB)
+- ACM certificate for HTTPS
+- Route53 DNS records
+
 ---
 
 ## Table of Contents

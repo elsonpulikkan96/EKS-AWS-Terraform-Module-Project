@@ -107,31 +107,6 @@ data "aws_iam_policy_document" "eks_oidc_assume_role_policy" {
   }
 }
 
-resource "aws_iam_role" "eks_oidc" {
-  assume_role_policy = data.aws_iam_policy_document.eks_oidc_assume_role_policy.json
-  name               = "eks-oidc"
-  tags               = var.common_tags
-}
-
-resource "aws_iam_policy" "eks-oidc-policy" {
-  name = "test-policy"
-
-  policy = jsonencode({
-    Statement = [{
-      Action = [
-        "s3:ListAllMyBuckets",
-        "s3:GetBucketLocation",
-        "*"
-      ]
-      Effect   = "Allow"
-      Resource = "*"
-    }]
-    Version = "2012-10-17"
-  })
-
-  tags = var.common_tags
-}
-
 
 
 
@@ -160,9 +135,39 @@ resource "aws_iam_role_policy_attachment" "bastion_ssm_policy" {
   role       = aws_iam_role.bastion_role.name
 }
 
-resource "aws_iam_role_policy_attachment" "bastion_admin_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-  role       = aws_iam_role.bastion_role.name
+# Bastion EKS read-only access
+resource "aws_iam_role_policy" "bastion_eks_policy" {
+  name = "${local.cluster_name}-bastion-eks-policy"
+  role = aws_iam_role.bastion_role.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "eks:DescribeCluster",
+          "eks:ListClusters",
+          "eks:DescribeNodegroup",
+          "eks:ListNodegroups",
+          "eks:DescribeAddon",
+          "eks:ListAddons",
+          "eks:AccessKubernetesApi"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeInstances",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeVpcs"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
 }
 
 resource "aws_iam_instance_profile" "bastion_profile" {

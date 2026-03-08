@@ -84,7 +84,57 @@ module "bastion" {
   security_groups           = [module.sg.bastion_sg_id]
   key_name                  = aws_key_pair.eks_key.key_name
   tags                      = merge(local.common_tags, var.bastion_tags)
-  user_data                 = file("bastion_script.sh")
+  user_data                 = <<-EOF
+    #!/bin/bash
+    set -euxo pipefail
+    
+    export DEBIAN_FRONTEND=noninteractive
+    
+    # System Update & Base Packages
+    apt-get update -y
+    apt-get upgrade -y
+    apt-get install -y curl git jq ca-certificates gnupg lsb-release bash-completion apt-transport-https unzip
+    
+    # Install AWS CLI v2
+    curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
+    unzip -q /tmp/awscliv2.zip -d /tmp
+    if ! command -v aws &>/dev/null; then
+      /tmp/aws/install
+    fi
+    rm -rf /tmp/aws /tmp/awscliv2.zip
+    
+    # Install kubectl
+    mkdir -p /etc/apt/keyrings
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list
+    apt-get update -y
+    apt-get install -y kubectl
+    
+    # kubectl completion
+    cat <<'INNER_EOF' >/etc/profile.d/kubectl.sh
+    source <(kubectl completion bash)
+    alias k=kubectl
+    complete -F __start_kubectl k
+    INNER_EOF
+    chmod +x /etc/profile.d/kubectl.sh
+    
+    # Install eksctl
+    ARCH=amd64
+    PLATFORM="$(uname -s)_$${ARCH}"
+    curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$${PLATFORM}.tar.gz"
+    tar -xzf eksctl_$${PLATFORM}.tar.gz -C /tmp
+    install -m 0755 /tmp/eksctl /usr/local/bin/eksctl
+    rm -f eksctl_$${PLATFORM}.tar.gz /tmp/eksctl
+    
+    # Install Helm
+    curl -fsSL https://baltocdn.com/helm/signing.asc | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+    apt-get update -y
+    apt-get install -y helm
+    
+    echo "Bastion setup complete"
+  EOF
   iam_instance_profile_name = module.iam.bastion_iam_instance_profile_name
 
   depends_on = [module.vpc]

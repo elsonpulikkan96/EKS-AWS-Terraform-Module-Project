@@ -9,11 +9,13 @@ private_subnet = ["10.2.4.0/24", "10.2.5.0/24", "10.2.6.0/24"]
 
 # EKS
 is_eks_cluster_enabled  = true
-cluster_version         = "1.35"
+cluster_version         = "1.33"
 cluster_name            = "prod-eks-cluster"
 endpoint_private_access = true
-endpoint_public_access  = true  # Required for Terraform to manage cluster
-public_access_cidrs     = ["0.0.0.0/0"]  # Restrict to your Terraform instance IP in production
+endpoint_public_access  = true
+# SECURITY: Restrict to your organization's IP ranges or VPN CIDR
+# Example: ["203.0.113.0/24", "198.51.100.0/24"]
+public_access_cidrs     = ["103.184.238.245/32"]  # CHANGE THIS BEFORE DEPLOYMENT
 authentication_mode     = "API_AND_CONFIG_MAP"
 
 ondemand_instance_types = ["t3a.large"]
@@ -23,9 +25,9 @@ desired_capacity_on_demand = "2"
 min_capacity_on_demand     = "2"
 max_capacity_on_demand     = "5"
 
-desired_capacity_spot = "3"
-min_capacity_spot     = "3"
-max_capacity_spot     = "20"
+desired_capacity_spot = "2"
+min_capacity_spot     = "2"
+max_capacity_spot     = "4"
 
 addons = [
   {
@@ -34,19 +36,19 @@ addons = [
   },
   {
     name    = "coredns"
-    version = "v1.13.1-eksbuild.1"
+    version = "v1.13.2-eksbuild.1"
   },
   {
     name    = "kube-proxy"
-    version = "v1.35.0-eksbuild.2"
+    version = "v1.33.8-eksbuild.4"
   },
   {
     name    = "aws-efs-csi-driver"
-    version = "v2.3.0-eksbuild.1"
+    version = "v2.3.0-eksbuild.2"
   },
   {
     name    = "aws-ebs-csi-driver"
-    version = "v1.55.0-eksbuild.1"
+    version = "v1.56.0-eksbuild.1"
   }
 ]
 

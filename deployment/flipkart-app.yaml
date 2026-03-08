@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flipkart
+  namespace: flipkart
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flipkart
+  template:
+    metadata:
+      labels:
+        app: flipkart
+    spec:
+      containers:
+      - name: flipkart
+        image: elsonpulikkan/flipkart:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flipkart
+  namespace: flipkart
+spec:
+  type: ClusterIP
+  selector:
+    app: flipkart
+  ports:
+  - port: 80
+    targetPort: 80

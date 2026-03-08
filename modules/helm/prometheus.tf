@@ -7,7 +7,7 @@ resource "helm_release" "prometheus-helm" {
   name             = "prometheus"
   repository       = "https://prometheus-community.github.io/helm-charts"
   chart            = "kube-prometheus-stack"
-  version          = "81.0.0"
+  version          = "82.10.1"
   namespace        = "prometheus"
   create_namespace = true
   timeout          = 2000
@@ -26,22 +26,12 @@ resource "helm_release" "prometheus-helm" {
 
   set {
     name  = "grafana.service.type"
-    value = "LoadBalancer"
-  }
-
-  set {
-    name  = "grafana.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-scheme"
-    value = "internet-facing"
+    value = "ClusterIP"
   }
 
   set {
     name  = "prometheus.service.type"
-    value = "LoadBalancer"
-  }
-
-  set {
-    name  = "prometheus.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-scheme"
-    value = "internet-facing"
+    value = "ClusterIP"
   }
 }
 

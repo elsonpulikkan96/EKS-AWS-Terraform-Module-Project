@@ -31,6 +31,18 @@ variable "endpoint_public_access" {}
 variable "public_access_cidrs" {
   type        = list(string)
   description = "CIDR blocks allowed to access EKS public API endpoint. REQUIRED for each environment."
+
+  validation {
+    condition     = length(var.public_access_cidrs) > 0
+    error_message = "At least one CIDR block must be specified for public_access_cidrs."
+  }
+
+  validation {
+    condition = alltrue([
+      for cidr in var.public_access_cidrs : can(cidrhost(cidr, 0))
+    ])
+    error_message = "All public_access_cidrs must be valid CIDR blocks."
+  }
 }
 variable "authentication_mode" {}
 

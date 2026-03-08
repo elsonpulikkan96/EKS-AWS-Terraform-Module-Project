@@ -6,8 +6,8 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
 
   tags = merge(var.common_tags, {
-    Name        = "vpc-${var.env}-${terraform.workspace}"
-    environment = "${var.env}-${terraform.workspace}"
+    Name = "vpc-${var.env}"
+    Env  = var.env
   })
 }
 
@@ -56,8 +56,8 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
   tags = merge(var.common_tags, {
-    Name                                        = "igw-${var.env}-${terraform.workspace}"
-    env                                         = var.env
+    Name = "igw-${var.env}"
+    Env  = var.env
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   })
 
@@ -67,23 +67,23 @@ resource "aws_internet_gateway" "igw" {
 
 
 resource "aws_eip" "nat_eip" {
-  count  = 2
+  count  = 3
   domain = "vpc"
 
   tags = merge(var.common_tags, {
-    Name = "nat_eip-${var.env}-${count.index + 1}-${terraform.workspace}"
+    Name = "nat_eip-${var.env}-${count.index + 1}"
   })
 
   depends_on = [aws_vpc.main]
 }
 
 resource "aws_nat_gateway" "nat_gateway" {
-  count         = 2
+  count         = 3
   allocation_id = aws_eip.nat_eip[count.index].id
   subnet_id     = aws_subnet.public_subnet[count.index].id
 
   tags = merge(var.common_tags, {
-    Name = "nat_gw-${var.env}-${count.index + 1}-${terraform.workspace}"
+    Name = "nat_gw-${var.env}-${count.index + 1}"
   })
 
   depends_on = [aws_vpc.main, aws_eip.nat_eip]
@@ -101,8 +101,8 @@ resource "aws_route_table" "public_rt" {
   }
 
   tags = merge(var.common_tags, {
-    Name = "public_rt-${var.env}-${terraform.workspace}"
-    env  = var.env
+    Name = "public_rt-${var.env}"
+    Env  = var.env
   })
 
   depends_on = [aws_vpc.main]
@@ -126,11 +126,11 @@ resource "aws_route_table" "private_rt" {
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gateway[count.index % 2].id
+    nat_gateway_id = aws_nat_gateway.nat_gateway[count.index].id
   }
 
   tags = merge(var.common_tags, {
-    Name = "private_rt-${var.env}-${count.index + 1}-${terraform.workspace}"
+    Name = "private_rt-${var.env}-${count.index + 1}"
     env  = var.env
   })
 

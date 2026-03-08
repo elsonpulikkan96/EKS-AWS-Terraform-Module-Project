@@ -32,7 +32,7 @@ resource "aws_iam_role" "alb_controller_role" {
 }
 
 resource "aws_iam_policy" "alb_controller_policy" {
-  name        = "alb-controller-policy"
+  name        = "${local.cluster_name}-alb-controller-policy-${random_integer.random_suffix.result}"
   description = "IAM policy for AWS Load Balancer Controller"
 
   policy = jsonencode({

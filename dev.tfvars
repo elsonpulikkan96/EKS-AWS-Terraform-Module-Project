@@ -9,7 +9,7 @@ private_subnet = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 
 # EKS
 is_eks_cluster_enabled  = true
-cluster_version         = "1.35"
+cluster_version         = "1.33"
 cluster_name            = "test-eks-cluster"
 endpoint_private_access = true
 endpoint_public_access  = true
@@ -25,28 +25,28 @@ max_capacity_on_demand     = "2"
 
 desired_capacity_spot = "2"
 min_capacity_spot     = "2"
-max_capacity_spot     = "10"
+max_capacity_spot     = "4"
 
 addons = [
   {
     name    = "vpc-cni"
-    version = "v1.21.1-eksbuild.3"
+    version = "v1.19.1-eksbuild.1"
   },
   {
     name    = "coredns"
-    version = "v1.13.1-eksbuild.1"
+    version = "v1.12.0-eksbuild.1"
   },
   {
     name    = "kube-proxy"
-    version = "v1.35.0-eksbuild.2"
+    version = "v1.33.0-eksbuild.1"
   },
   {
     name    = "aws-efs-csi-driver"
-    version = "v2.3.0-eksbuild.1"
+    version = "v2.1.2-eksbuild.1"
   },
   {
     name    = "aws-ebs-csi-driver"
-    version = "v1.55.0-eksbuild.1"
+    version = "v1.39.0-eksbuild.1"
   }
 ]
 

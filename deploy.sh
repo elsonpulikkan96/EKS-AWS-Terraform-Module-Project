@@ -34,7 +34,7 @@ terraform apply tfplan
 
 # Step 5: Update kubeconfig
 echo "Step 5: Updating kubeconfig..."
-CLUSTER_NAME=$(terraform output -raw cluster_name)
+CLUSTER_NAME=$(terraform output -raw eks_cluster_name)
 REGION=$(terraform output -raw region)
 aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$REGION"
 

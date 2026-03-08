@@ -8,8 +8,9 @@ set -e
 # Configuration
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 REGION="us-east-1"
-BUCKET_NAME="eks-terraform-state-${AWS_ACCOUNT_ID}"
-DYNAMODB_TABLE="eks-terraform-locks-${AWS_ACCOUNT_ID}"
+TIMESTAMP=$(date +%d-%m-%Y)
+BUCKET_NAME="eks-terraform-state-${AWS_ACCOUNT_ID}-${TIMESTAMP}"
+DYNAMODB_TABLE="eks-terraform-locks-${AWS_ACCOUNT_ID}-${TIMESTAMP}"
 
 echo "=========================================="
 echo "Terraform Backend Setup"

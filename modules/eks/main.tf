@@ -13,11 +13,12 @@ resource "aws_eks_cluster" "eks" {
     security_group_ids      = var.security_group_ids
   }
 
-
   access_config {
     authentication_mode                         = var.authentication_mode
     bootstrap_cluster_creator_admin_permissions = true
   }
+
+  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
   tags = merge(var.common_tags, {
     Name = var.cluster_name

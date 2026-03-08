@@ -1,9 +1,15 @@
 # EBS CSI Driver OIDC IAM Role
 # Created here because it needs the OIDC provider which is created in this module
 
+data "aws_caller_identity" "current" {}
+
+resource "random_id" "ebs_csi_suffix" {
+  byte_length = 4
+}
+
 resource "aws_iam_role" "ebs_csi_driver_role" {
   count = var.is_eks_cluster_enabled ? 1 : 0
-  name  = "${var.cluster_name}-ebs-csi-driver-role"
+  name  = "${var.cluster_name}-ebs-csi-${random_id.ebs_csi_suffix.hex}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

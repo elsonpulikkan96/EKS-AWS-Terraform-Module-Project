@@ -1,0 +1,49 @@
+cluster:
+  accessConfig:
+    authenticationMode: API_AND_CONFIG_MAP
+  arn: arn:aws:eks:us-east-1:648890865579:cluster/production-prod-eks-cluster
+  certificateAuthority:
+    data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURCVENDQWUyZ0F3SUJBZ0lJYlV4SlpRYWRmend3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TmpBek1EZ3lNVFEwTkRCYUZ3MHpOakF6TURVeU1UUTVOREJhTUJVeApFekFSQmdOVkJBTVRDbXQxWW1WeWJtVjBaWE13Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUUNkdThLUW9pS1FMdnFOcVZDV3lrMkh3aEQvWDVENUkyeDVmV0h1dVV1SERzMUd0UUwwRHlnSHhzcmYKUFVxb2ZhV1crcnZEdm9EVDd4dG44YlRhRFBHcU1GZUtIdmJ4c3dRK3hUdUtNbHo2U1o5VTBuaGRZTUpHMkJ5dwp5RFRVaTI5cnFxYkhPQ3NEQkszcnlQdE1MR0UxUHVWckRlSlo4RmdPR3JsM2I0aVdsNFU4NytsN1d5QytWaDYrClJ1R0pKc2pzdktGWXh2TGxtRU5oZmRuUE4vRHR1d1czRzRHc1FRTzk0SWx1WHZCTmJ2b2VLcnZMVExlSFlBSVoKV1h0azNQRUhONlpudHlsdVlZMHJxSDZhRDlxUHVzOHMvNkZoeEU2QlcxMWpWU1BFcUpUL2FMUmdON0RqQ1E1Kwo1WXFkb0NBT3FkMS90US9uQld2dXBvSWMzV3g5QWdNQkFBR2pXVEJYTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJSVmZ0YmFjbXNpdlc3MzFjUW1QZVowNFpKalFqQVYKQmdOVkhSRUVEakFNZ2dwcmRXSmxjbTVsZEdWek1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQktNWTg0cFpuZAoyWUp0dlFMQkMwUmtQWUpFbHhuYThGOStoS2dZc1dYbHJmb2p6dmRXMDNDRkUxdHlsQittRDU2QmRxZW9KYzNUClN1OUZXSlU5a2ZsUCsxTWt1TnlPemUrY3lkenFmTVZvTUFLanFHcS95Wk4rak5TanRBblhXQXZCdWFZZnpCMEgKL09MOFR4TU9qVDVCalRmMHlHMFZVM053d0krZlZzMTNyMG1yYk5sMWlZR2NlT2RGdzh3dkFaOXhRU0dWakg5VgpuSWVwR0V5V3UyeTNPMVJxeXpUaGw4UEFFU0lERExjMVBTdEpJS09idlhTWjRCQTBSd200cE5aU2JITUoxd04rCkNqbGtFZ0NwT0Y5RkEvT3FBOCtnazNFbXhMUjZ6eFNzUDNpNkhYWHlEOTl1Nmc0N2pvSGN4aHdQU2xuTHBNRXYKcSsyUy9BSFdQbDZFCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  createdAt: '2026-03-09T03:15:20.829000+05:30'
+  endpoint: https://1E0B77FDC48D5C70AFBAD5EF10A4644F.gr7.us-east-1.eks.amazonaws.com
+  identity:
+    oidc:
+      issuer: https://oidc.eks.us-east-1.amazonaws.com/id/1E0B77FDC48D5C70AFBAD5EF10A4644F
+  kubernetesNetworkConfig:
+    elasticLoadBalancing:
+      enabled: false
+    ipFamily: ipv4
+    serviceIpv4Cidr: 172.20.0.0/16
+  logging:
+    clusterLogging:
+    - enabled: true
+      types:
+      - api
+      - audit
+      - authenticator
+      - controllerManager
+      - scheduler
+  name: production-prod-eks-cluster
+  platformVersion: eks.29
+  resourcesVpcConfig:
+    clusterSecurityGroupId: sg-000dfeccbdae5fad2
+    endpointPrivateAccess: true
+    endpointPublicAccess: true
+    publicAccessCidrs:
+    - 103.184.238.253/32
+    securityGroupIds:
+    - sg-0f0dc03903da2c54e
+    subnetIds:
+    - subnet-0065e96a3828b5894
+    - subnet-0362e9b0ef5473c9e
+    - subnet-0c695bff0e5d790e1
+    vpcId: vpc-088ea74dbe510518e
+  roleArn: arn:aws:iam::648890865579:role/production-prod-eks-cluster-role-6404
+  status: ACTIVE
+  tags:
+    Env: production
+    Name: production-prod-eks-cluster
+    terraform: 'true'
+  upgradePolicy:
+    supportType: EXTENDED
+  version: '1.33'

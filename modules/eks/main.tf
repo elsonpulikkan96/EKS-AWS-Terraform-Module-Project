@@ -96,7 +96,7 @@ resource "aws_launch_template" "ondemand" {
 resource "aws_eks_node_group" "ondemand-node" {
   cluster_name    = aws_eks_cluster.eks[0].name
   node_group_name = "${var.cluster_name}-on-demand-nodes"
-
+  version         = var.cluster_version
   node_role_arn = var.eks_node_role_arn
 
   scaling_config {
@@ -119,7 +119,7 @@ resource "aws_eks_node_group" "ondemand-node" {
   }
 
   update_config {
-    max_unavailable = 1
+    max_unavailable_percentage = 50  # Allow 50% of nodes to update simultaneously
   }
 
   tags = merge(var.common_tags, {
@@ -165,7 +165,7 @@ resource "aws_launch_template" "spot" {
 resource "aws_eks_node_group" "spot-node" {
   cluster_name    = aws_eks_cluster.eks[0].name
   node_group_name = "${var.cluster_name}-spot-nodes"
-
+  version         = var.cluster_version
   node_role_arn = var.eks_node_role_arn
 
   scaling_config {
@@ -180,7 +180,7 @@ resource "aws_eks_node_group" "spot-node" {
   capacity_type  = "SPOT"
 
   update_config {
-    max_unavailable = 1
+    max_unavailable_percentage = 50  # Allow 50% of nodes to update simultaneously
   }
 
   labels = {

@@ -9,13 +9,13 @@ private_subnet = ["10.2.4.0/24", "10.2.5.0/24", "10.2.6.0/24"]
 
 # EKS
 is_eks_cluster_enabled  = true
-cluster_version         = "1.34"
+cluster_version         = "1.33"
 cluster_name            = "prod-eks-cluster"
 endpoint_private_access = true
 endpoint_public_access  = true
 # SECURITY: Restrict to your organization's IP ranges or VPN CIDR
 # Example: ["203.0.113.0/24", "198.51.100.0/24"]
-public_access_cidrs     = ["103.184.238.253/32"]  # Current IP updated
+public_access_cidrs     = ["103.184.238.201/32"]  # Current IP updated
 authentication_mode     = "API_AND_CONFIG_MAP"
 
 ondemand_instance_types = ["t3a.large"]
@@ -40,7 +40,7 @@ addons = [
   },
   {
     name    = "kube-proxy"
-    version = "v1.34.3-eksbuild.5"
+    version = "v1.33.8-eksbuild.4"
   },
   {
     name    = "aws-efs-csi-driver"

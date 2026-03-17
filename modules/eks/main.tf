@@ -57,13 +57,37 @@ data "aws_eks_addon_version" "addons" {
   depends_on = [aws_eks_cluster.eks]
 }
 
-# AddOns — depend on cluster AND node groups so pods can schedule
-resource "aws_eks_addon" "eks-addons" {
-  for_each     = { for addon in var.addons : addon.name => addon }
+# Core networking addons — must be ready BEFORE node groups
+locals {
+  core_addons     = { for addon in var.addons : addon.name => addon if contains(["vpc-cni", "coredns", "kube-proxy"], addon.name) }
+  non_core_addons = { for addon in var.addons : addon.name => addon if !contains(["vpc-cni", "coredns", "kube-proxy"], addon.name) }
+}
+
+resource "aws_eks_addon" "core-addons" {
+  for_each     = local.core_addons
   cluster_name = aws_eks_cluster.eks[0].name
   addon_name   = each.value.name
 
-  # If version is pinned use it, otherwise use the latest compatible default
+  addon_version = coalesce(lookup(each.value, "version", null), data.aws_eks_addon_version.addons[each.key].version)
+
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "PRESERVE"
+
+  timeouts {
+    create = "20m"
+    update = "20m"
+    delete = "15m"
+  }
+
+  depends_on = [aws_eks_cluster.eks]
+}
+
+# Non-core addons — depend on node groups so pods can schedule
+resource "aws_eks_addon" "non-core-addons" {
+  for_each     = local.non_core_addons
+  cluster_name = aws_eks_cluster.eks[0].name
+  addon_name   = each.value.name
+
   addon_version = coalesce(lookup(each.value, "version", null), data.aws_eks_addon_version.addons[each.key].version)
 
   service_account_role_arn = each.value.name == "aws-ebs-csi-driver" ? aws_iam_role.ebs_csi_driver_role[0].arn : null
@@ -118,7 +142,7 @@ resource "aws_launch_template" "ondemand" {
   }
 }
 
-# NodeGroups
+# NodeGroups — depend on core addons (vpc-cni) so nodes can get IPs
 resource "aws_eks_node_group" "ondemand-node" {
   cluster_name    = aws_eks_cluster.eks[0].name
   node_group_name = "${var.cluster_name}-on-demand-nodes"
@@ -166,7 +190,7 @@ resource "aws_eks_node_group" "ondemand-node" {
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   })
 
-  depends_on = [aws_eks_cluster.eks]
+  depends_on = [aws_eks_cluster.eks, aws_eks_addon.core-addons]
 }
 
 # Launch Template for Spot Nodes
@@ -253,5 +277,5 @@ resource "aws_eks_node_group" "spot-node" {
   })
 
   # Spot upgrades after on-demand is healthy
-  depends_on = [aws_eks_cluster.eks, aws_eks_node_group.ondemand-node]
+  depends_on = [aws_eks_cluster.eks, aws_eks_addon.core-addons, aws_eks_node_group.ondemand-node]
 }

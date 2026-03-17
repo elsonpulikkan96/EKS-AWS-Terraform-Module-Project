@@ -17,7 +17,7 @@ endpoint_public_access  = true
 # Example: ["203.0.113.0/24", "198.51.100.0/24"]
 public_access_cidrs             = ["103.184.238.226/32"] # CHANGE THIS BEFORE DEPLOYMENT
 authentication_mode             = "API_AND_CONFIG_MAP"
-bootstrap_cluster_creator_admin = false
+bootstrap_cluster_creator_admin = true
 
 ondemand_instance_types = ["t3a.large"]
 spot_instance_types     = ["c5a.large", "c5a.xlarge", "m5a.large", "m5a.xlarge", "c5.large", "m5.large", "t3a.large", "t3a.xlarge"]

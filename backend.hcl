@@ -1,3 +1,3 @@
-bucket         = "eks-terraform-state-648890865579-11-03-2026"
+bucket         = "eks-terraform-state-648890865579-pe8wm7"
 region         = "us-east-1"
-dynamodb_table = "eks-terraform-locks-648890865579-11-03-2026"
+dynamodb_table = "eks-terraform-locks-648890865579-pe8wm7"

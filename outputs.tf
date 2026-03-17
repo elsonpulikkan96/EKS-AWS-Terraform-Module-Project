@@ -5,7 +5,7 @@ output "bastion_public_ip" {
 
 output "ssh_key_name" {
   value       = aws_key_pair.eks_key.key_name
-  description = "Auto-generated SSH key pair name (format: eks-<env>-<account_id>)"
+  description = "Auto-generated SSH key pair name (format: eks-<env>-<account_id>-<uid>)"
 }
 
 output "ssh_private_key_path" {

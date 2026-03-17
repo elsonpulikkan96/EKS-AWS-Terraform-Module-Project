@@ -1,8 +1,15 @@
 data "aws_caller_identity" "current" {}
 
+resource "random_string" "uid" {
+  length  = 6
+  special = false
+  upper   = false
+}
+
 locals {
   account_id = data.aws_caller_identity.current.account_id
-  key_name   = "eks-${var.env}-${local.account_id}"
+  uid        = random_string.uid.result
+  key_name   = "eks-${var.env}-${local.account_id}-${local.uid}"
 }
 
 resource "aws_key_pair" "eks_key" {

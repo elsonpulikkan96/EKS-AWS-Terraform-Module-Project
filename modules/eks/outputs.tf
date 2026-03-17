@@ -17,3 +17,15 @@ output "oidc_provider_arn" {
 output "cluster_certificate_authority_data" {
   value = var.is_eks_cluster_enabled ? aws_eks_cluster.eks[0].certificate_authority[0].data : null
 }
+
+output "cluster_version" {
+  value = var.is_eks_cluster_enabled ? aws_eks_cluster.eks[0].version : null
+}
+
+output "ondemand_node_group_status" {
+  value = aws_eks_node_group.ondemand-node.status
+}
+
+output "spot_node_group_status" {
+  value = aws_eks_node_group.spot-node.status
+}

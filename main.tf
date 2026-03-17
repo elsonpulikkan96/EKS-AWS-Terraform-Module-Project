@@ -1,6 +1,6 @@
 locals {
   env = var.env
-  
+
   common_tags = {
     terraform = "true"
   }
@@ -54,23 +54,24 @@ module "eks" {
   eks_cluster_role_arn = module.iam.eks_cluster_role_arn
   eks_node_role_arn    = module.iam.eks_nodegroup_role_arn
 
-  is_eks_cluster_enabled     = var.is_eks_cluster_enabled
-  cluster_version            = var.cluster_version
-  endpoint_private_access    = var.endpoint_private_access
-  endpoint_public_access     = var.endpoint_public_access
-  public_access_cidrs        = var.public_access_cidrs
-  authentication_mode        = var.authentication_mode
-  ondemand_instance_types    = var.ondemand_instance_types
-  spot_instance_types        = var.spot_instance_types
-  desired_capacity_on_demand = var.desired_capacity_on_demand
-  min_capacity_on_demand     = var.min_capacity_on_demand
-  max_capacity_on_demand     = var.max_capacity_on_demand
-  desired_capacity_spot      = var.desired_capacity_spot
-  min_capacity_spot          = var.min_capacity_spot
-  max_capacity_spot          = var.max_capacity_spot
-  addons                     = var.addons
-  node_key_name              = aws_key_pair.eks_key.key_name
-  common_tags                = local.common_tags
+  is_eks_cluster_enabled          = var.is_eks_cluster_enabled
+  cluster_version                 = var.cluster_version
+  endpoint_private_access         = var.endpoint_private_access
+  endpoint_public_access          = var.endpoint_public_access
+  public_access_cidrs             = var.public_access_cidrs
+  authentication_mode             = var.authentication_mode
+  bootstrap_cluster_creator_admin = var.bootstrap_cluster_creator_admin
+  ondemand_instance_types         = var.ondemand_instance_types
+  spot_instance_types             = var.spot_instance_types
+  desired_capacity_on_demand      = var.desired_capacity_on_demand
+  min_capacity_on_demand          = var.min_capacity_on_demand
+  max_capacity_on_demand          = var.max_capacity_on_demand
+  desired_capacity_spot           = var.desired_capacity_spot
+  min_capacity_spot               = var.min_capacity_spot
+  max_capacity_spot               = var.max_capacity_spot
+  addons                          = var.addons
+  node_key_name                   = aws_key_pair.eks_key.key_name
+  common_tags                     = local.common_tags
 
   depends_on = [module.vpc]
 }
@@ -105,9 +106,9 @@ module "bastion" {
     
     # Install kubectl
     mkdir -p /etc/apt/keyrings
-    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v${var.cluster_version}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
     chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${var.cluster_version}/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list
     apt-get update -y
     apt-get install -y kubectl
     
@@ -162,12 +163,21 @@ resource "aws_eks_access_policy_association" "bastion_admin" {
 # Wait for OIDC provider to propagate in IAM
 resource "time_sleep" "wait_for_oidc" {
   depends_on      = [module.iam]
-  create_duration = "30s"
+  create_duration = "15s"
+
+  triggers = {
+    cluster_version = var.cluster_version
+  }
 }
 
 # Wait for cluster and nodes to be ready
 resource "null_resource" "wait_for_cluster_ready" {
   depends_on = [module.eks]
+
+  triggers = {
+    cluster_version = var.cluster_version
+    cluster_name    = module.eks.cluster_name
+  }
 
   provisioner "local-exec" {
     command = <<-EOT
@@ -176,10 +186,10 @@ resource "null_resource" "wait_for_cluster_ready" {
       
       # Wait for nodes (skip if kubectl not installed)
       if command -v kubectl &> /dev/null; then
-        kubectl wait --for=condition=Ready nodes --all --timeout=300s
+        kubectl wait --for=condition=Ready nodes --all --timeout=300s || echo "Some nodes not ready yet, continuing..."
       else
         echo "kubectl not found, skipping node readiness check"
-        sleep 120
+        sleep 60
       fi
     EOT
   }

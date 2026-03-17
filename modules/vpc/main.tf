@@ -56,8 +56,8 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
   tags = merge(var.common_tags, {
-    Name = "igw-${var.env}"
-    Env  = var.env
+    Name                                        = "igw-${var.env}"
+    Env                                         = var.env
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   })
 

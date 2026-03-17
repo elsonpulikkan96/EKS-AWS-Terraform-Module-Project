@@ -5,7 +5,8 @@ resource "helm_release" "argocd" {
   version          = "9.4.7"
   namespace        = "argocd"
   create_namespace = true
-  timeout          = 600
+  timeout          = 300
+  wait             = true
 
   set {
     name  = "server.service.type"
@@ -19,7 +20,7 @@ resource "helm_release" "argocd" {
 
   set {
     name  = "crds.keep"
-    value = "false"
+    value = "true"
   }
 
   depends_on = [time_sleep.wait_for_alb_controller]
@@ -27,7 +28,11 @@ resource "helm_release" "argocd" {
 
 resource "time_sleep" "wait_for_argocd" {
   depends_on      = [helm_release.argocd]
-  create_duration = "30s"
+  create_duration = "20s"
+
+  triggers = {
+    argocd_chart_version = helm_release.argocd.version
+  }
 }
 
 resource "kubernetes_ingress_v1" "argocd" {
@@ -35,9 +40,9 @@ resource "kubernetes_ingress_v1" "argocd" {
     name      = "argocd-ingress"
     namespace = "argocd"
     annotations = {
-      "alb.ingress.kubernetes.io/group.name"    = "shared-alb"
-      "alb.ingress.kubernetes.io/target-type"   = "ip"
-      "alb.ingress.kubernetes.io/scheme"        = "internet-facing"
+      "alb.ingress.kubernetes.io/group.name"       = "shared-alb"
+      "alb.ingress.kubernetes.io/target-type"      = "ip"
+      "alb.ingress.kubernetes.io/scheme"           = "internet-facing"
       "alb.ingress.kubernetes.io/backend-protocol" = "HTTP"
     }
   }

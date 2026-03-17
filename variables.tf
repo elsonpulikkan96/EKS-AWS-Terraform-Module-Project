@@ -46,6 +46,12 @@ variable "public_access_cidrs" {
 }
 variable "authentication_mode" {}
 
+variable "bootstrap_cluster_creator_admin" {
+  type        = bool
+  default     = true
+  description = "Bootstrap cluster creator admin permissions. Set false for EKS 1.34+."
+}
+
 variable "ondemand_instance_types" {}
 variable "spot_instance_types" {}
 variable "desired_capacity_on_demand" {}

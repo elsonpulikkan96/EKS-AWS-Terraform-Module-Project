@@ -54,27 +54,27 @@ variable "spot_instance_types" {
 }
 
 variable "desired_capacity_on_demand" {
-  type = string
+  type = number
 }
 
 variable "min_capacity_on_demand" {
-  type = string
+  type = number
 }
 
 variable "max_capacity_on_demand" {
-  type = string
+  type = number
 }
 
 variable "desired_capacity_spot" {
-  type = string
+  type = number
 }
 
 variable "min_capacity_spot" {
-  type = string
+  type = number
 }
 
 variable "max_capacity_spot" {
-  type = string
+  type = number
 }
 
 # Dependencies from other modules
@@ -97,4 +97,10 @@ variable "eks_node_role_arn" {
 
 variable "authentication_mode" {
   type = string
+}
+
+variable "bootstrap_cluster_creator_admin" {
+  type        = bool
+  default     = true
+  description = "Bootstrap cluster creator admin permissions. Deprecated in EKS 1.34+, set to false for newer versions."
 }

@@ -13,40 +13,35 @@ cluster_version         = "1.33"
 cluster_name            = "stage-eks-cluster"
 endpoint_private_access = true
 endpoint_public_access  = true
-public_access_cidrs     = ["0.0.0.0/0"]  # Allow Terraform from anywhere
+public_access_cidrs     = ["0.0.0.0/0"] # Allow Terraform from anywhere
 authentication_mode     = "API_AND_CONFIG_MAP"
 
 ondemand_instance_types = ["t3a.medium"]
 spot_instance_types     = ["c5a.large", "c5a.xlarge", "m5a.large", "m5a.xlarge", "c5.large", "m5.large", "t3a.large", "t3a.xlarge", "t3a.medium"]
 
-desired_capacity_on_demand = "1"
-min_capacity_on_demand     = "1"
-max_capacity_on_demand     = "3"
+desired_capacity_on_demand = 1
+min_capacity_on_demand     = 1
+max_capacity_on_demand     = 3
 
-desired_capacity_spot = "2"
-min_capacity_spot     = "2"
-max_capacity_spot     = "4"
+desired_capacity_spot = 2
+min_capacity_spot     = 2
+max_capacity_spot     = 4
 
 addons = [
   {
-    name    = "vpc-cni"
-    version = "v1.19.1-eksbuild.1"
+    name = "vpc-cni"
   },
   {
-    name    = "coredns"
-    version = "v1.12.0-eksbuild.1"
+    name = "coredns"
   },
   {
-    name    = "kube-proxy"
-    version = "v1.33.0-eksbuild.1"
+    name = "kube-proxy"
   },
   {
-    name    = "aws-efs-csi-driver"
-    version = "v2.1.2-eksbuild.1"
+    name = "aws-efs-csi-driver"
   },
   {
-    name    = "aws-ebs-csi-driver"
-    version = "v1.39.0-eksbuild.1"
+    name = "aws-ebs-csi-driver"
   }
 ]
 
